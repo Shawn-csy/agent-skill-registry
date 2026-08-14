@@ -1,0 +1,23 @@
+{
+  "name": "personal-agent-skill-registry",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "skill": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc && node dist/registry-builder.js",
+    "clean": "rm -rf dist generated site",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "skill": "node dist/cli.js",
+    "deploy:pages": "npm run build && npx wrangler pages deploy site --project-name skill-registry"
+  },
+  "dependencies": {
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
+  }
+}

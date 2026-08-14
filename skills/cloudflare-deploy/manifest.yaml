@@ -1,0 +1,25 @@
+schemaVersion: 1
+name: cloudflare-deploy
+version: 1.0.0
+description: Deployment conventions and troubleshooting for Cloudflare services.
+tags:
+  - cloudflare
+  - deployment
+  - devops
+entrypoint: SKILL.md
+compatibility:
+  - claude-code
+  - codex
+  - gemini-cli
+permissions:
+  filesystem:
+    read: true
+    write: true
+  shell: true
+  network:
+    - api.cloudflare.com
+requires:
+  tools:
+    - git
+owner: personal
+verified: false

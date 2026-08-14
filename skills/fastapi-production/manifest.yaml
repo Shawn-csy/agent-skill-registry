@@ -1,0 +1,23 @@
+schemaVersion: 1
+name: fastapi-production
+version: 1.0.0
+description: Production conventions for FastAPI services.
+tags:
+  - fastapi
+  - python
+  - backend
+entrypoint: SKILL.md
+compatibility:
+  - claude-code
+  - codex
+  - gemini-cli
+permissions:
+  filesystem:
+    read: true
+    write: true
+  shell: true
+requires:
+  tools:
+    - python
+owner: personal
+verified: false
