@@ -1,0 +1,32 @@
+schemaVersion: 1
+name: authentik-google-oidc
+version: 1.0.0
+description: Authentik as a Google-backed OIDC broker with secure application sessions and optional per-user Google Drive or Sheets access.
+tags:
+  - authentik
+  - oidc
+  - oauth
+  - google
+  - identity
+  - drive
+  - sheets
+  - security
+entrypoint: SKILL.md
+compatibility:
+  - claude-code
+  - codex
+  - gemini-cli
+permissions:
+  filesystem:
+    read: true
+    write: true
+  shell: true
+  network:
+    - accounts.google.com
+    - oauth2.googleapis.com
+    - docs.goauthentik.io
+requires:
+  tools:
+    - git
+owner: personal
+verified: false
