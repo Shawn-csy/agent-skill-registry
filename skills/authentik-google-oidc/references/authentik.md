@@ -2,90 +2,79 @@
 
 Use this reference when creating or repairing the Authentik side of the brokered login.
 
-## Google Cloud OAuth client
+## Existing upstream Google source
 
-In Google Cloud, configure the OAuth consent screen and create a Web application client. Add this exact authorized redirect URI:
+The Shawnup instance already has Google source `google`. Its Google Cloud Web OAuth callback is:
 
-`https://{auth_host}/source/oauth/callback/{google_source_slug}/`
+`https://auth.shawnup.com/source/oauth/callback/google/`
 
-The source slug in Authentik must match the last path segment. Keep this client dedicated to Authentik's upstream login source. Do not use the application's OIDC callback here.
+Do not create or rotate this shared client during ordinary service onboarding. When troubleshooting it, open **Directory > Federation and Social login** and verify that source `google` requests only the identity scopes needed for login.
 
-Use `openid`, `email`, and `profile` for the identity source. Add more scopes only when an Authentik source mapping or policy needs them.
+Attach the source to the Identification stage used by the login flow. Promoting a source does not by itself guarantee that every authentication flow presents it. When the login page only asks for email, inspect the selected Identification stage and its source list.
 
-## Google OAuth source
+Do not recreate or edit this shared Google client when adding an ordinary downstream service. The downstream callback belongs on its Authentik OAuth2/OIDC provider, not in Google Cloud.
 
-In Authentik Admin, open Directory ??Federation and Social login ??New Source and select Google OAuth Source. Set:
+## Per-service application/provider
 
-- Name: a user-facing label such as `Google`.
-- Slug: `{google_source_slug}`.
-- Consumer Key: the Google client ID.
-- Consumer Secret: the Google client secret.
-- Additional scopes: only the minimum identity scopes required.
+Prefer **Applications > Applications > New Provider**, which creates the application/provider pair together. Configure:
 
-Choose authentication and enrollment flows appropriate to the application. If usernames must be derived automatically, use a documented property mapping or enrollment policy; do not make every user invent a second application-specific name merely to complete Google sign-in.
+- one unique slug and provider per service/environment;
+- the exact downstream callback URI;
+- confidential client for a trusted backend/platform and public client only when no secret can be protected;
+- Authorization Code with PKCE;
+- a signing key/certificate for asymmetrically signed JWTs and a usable JWKS;
+- `openid`, `profile`, and `email` scope mappings;
+- per-provider issuer mode;
+- only required custom claims.
 
-## Application and OIDC provider
-
-Create the application and OAuth2/OIDC provider together when possible. Configure:
-
-- Application slug: `{app_slug}`.
-- Redirect URI: `{app_callback}` with exact matching.
-- Client type: public when the app cannot protect a secret; confidential when a backend can protect it.
-- Authorization code flow with PKCE.
-- Authentication flow: the app's dedicated Google-only flow.
-- Authorization flow: the provider authorization flow, with only the policies the app requires.
-- Invalidation flow: a logout/invalidation flow that terminates the provider session without redirecting back into the same login entry point.
-
-The issuer and discovery URL are:
+Default endpoints:
 
 ```text
-Issuer:    https://{auth_host}/application/o/{app_slug}/
-Discovery: https://{auth_host}/application/o/{app_slug}/.well-known/openid-configuration
+Authorization: https://auth.shawnup.com/application/o/authorize/
+Token:         https://auth.shawnup.com/application/o/token/
+User info:     https://auth.shawnup.com/application/o/userinfo/
+Issuer:        https://auth.shawnup.com/application/o/{app_slug}/
+JWKS:          https://auth.shawnup.com/application/o/{app_slug}/jwks/
+Discovery:     https://auth.shawnup.com/application/o/{app_slug}/.well-known/openid-configuration
+End session:   https://auth.shawnup.com/application/o/{app_slug}/end-session/
 ```
 
-The app should consume discovery instead of hard-coding endpoint paths. The standard Authentik provider endpoints include authorization, token, userinfo, revoke, and JWKS endpoints under `/application/o/`.
+Consume discovery whenever the downstream supports it. Authentik's authorization/token/userinfo endpoints are global, while issuer, JWKS, discovery, and end-session URLs contain the application slug.
 
-## Google-only authentication flow
+Do not leave Redirect URIs empty to let Authentik learn the first launch URL. Prefer exact entries. If regex is unavoidable, anchor it and escape dots.
 
-Create a dedicated Authentication flow instead of modifying Authentik's global default flow. A minimal source-only flow is:
+## Authentication flow choices
 
-1. Identification stage with no user fields.
-2. Google source selected in the Identification stage.
-3. No password stage and no passwordless/recovery/enrollment links unless explicitly required.
-4. Any required policy or MFA stage.
-5. User Login stage at the end.
+Reuse the normal authentication flow when its Google option and fallback behavior are acceptable. Create a dedicated app flow only when the app needs different behavior such as Google-only login or MFA.
 
-When only one source is selected and no user fields are present, Authentik can redirect directly to that source. The exact behavior depends on the flow and Authentik version, so verify it with a private browser session.
+For Google-only login:
 
-Do not add a User Login stage to the Google source's own flow when embedding it via a Source stage. The parent flow must resume after the source returns.
+1. Bind an Identification stage with the Google source selected.
+2. Leave user fields empty if Google is the only entry point.
+3. Do not bind a Password stage or password recovery/enrollment links.
+4. End the parent authentication flow with the required User Login stage.
 
-If local password sign-in must be impossible for ordinary users, inspect all of these locations:
+When embedding the source through a Source stage, do not add User Login to the source's own flow; let the parent flow resume. Verify behavior in a private browser because an existing Authentik or Google session can hide the source picker.
 
-- Identification stage `password_stage` setting.
-- Separately bound Password stage.
-- Enrollment and recovery flow links.
-- Other sources enabled on the application flow.
-- Application bindings that expose a different default flow.
+Keep a separate local administrator recovery path. Do not remove all local login options globally merely to make one app Google-only.
 
-Do not delete administrators' recovery access without an out-of-band admin recovery plan.
+## Users and authorization
 
-## Account selection and stale sessions
+Google-source users do not need a local password. External users can authenticate to applications but cannot use the Authentik user dashboard; internal users can. Superuser access is unrelated to OIDC sign-in and must be granted only on explicit request.
 
-The account chooser is a Google behavior. Verify the request reaching `accounts.google.com` includes:
+Use application bindings/policies for access control. Decide explicitly whether all eligible users may access the app or only selected groups/users. Map groups or custom roles only when the downstream actually enforces them.
 
-`prompt=select_account`
+Since Authentik 2025.10, the built-in email scope can report `email_verified: false`. If a downstream refuses the login, verify the real upstream assurance and create a deliberate custom mapping rather than blindly asserting every email is verified.
 
-Passing `prompt=select_account` only to the app's Authentik authorize URL may not be sufficient if the selected Authentik flow does not forward it. Use a dedicated flow or supported customization that preserves the parameter, then verify in browser network logs.
+## Account selection and sessions
 
-If a stale upstream provider session prevents account selection, use a bounded invalidation step before starting authentication. The invalidation route must have a clear terminal redirect. Guard the normal login path so it does not invalidate and restart itself forever; a `skip_logout`/one-shot state flag is one possible pattern.
+Google controls the account chooser. Verify the request reaching Google contains `prompt=select_account` when account selection is a requirement. Passing the parameter to Authentik does not guarantee the chosen Authentik version/flow forwards it upstream.
 
-Do not solve a loop by blindly clearing every cookie or repeatedly redirecting between the app, Authentik, and Google. Inspect the `Location` chain and the flow event log to find which endpoint points back to the entry point.
+Diagnose loops by recording the `Location` chain and Authentik events. Avoid repeatedly clearing every cookie or routing invalidation back into the same login entry point.
 
 ## Official references
 
-- [Google Cloud OAuth with Authentik](https://docs.goauthentik.io/users-sources/sources/social-logins/google/cloud/)
-- [Authentik OAuth2 provider](https://docs.goauthentik.io/add-secure-apps/providers/oauth2/)
+- [Authentik OAuth2/OIDC provider](https://docs.goauthentik.io/add-secure-apps/providers/oauth2/)
 - [Create an OAuth2 provider](https://docs.goauthentik.io/add-secure-apps/providers/oauth2/create-oauth2-provider)
+- [Google identity provider](https://docs.goauthentik.io/users-sources/sources/social-logins/google/)
 - [Identification stage](https://docs.goauthentik.io/add-secure-apps/flows-stages/stages/identification/)
-- [Source stage](https://docs.goauthentik.io/add-secure-apps/flows-stages/stages/source/)
-

@@ -1,7 +1,7 @@
 schemaVersion: 1
 name: authentik-google-oidc
-version: 1.0.1
-description: Authentik as a Google-backed OIDC broker with secure application sessions and optional per-user Google Drive or Sheets access.
+version: 1.1.0
+description: Connect services to auth.shawnup.com using direct OIDC, Supabase Auth, Cloudflare Access, or an auth proxy.
 tags:
   - authentik
   - oidc
@@ -11,6 +11,8 @@ tags:
   - drive
   - sheets
   - security
+  - supabase
+  - cloudflare
 entrypoint: SKILL.md
 compatibility:
   - claude-code
@@ -29,9 +31,11 @@ permissions:
     - sheets.googleapis.com
     - openidconnect.googleapis.com
     - docs.goauthentik.io
-    - configured Authentik instance
+    - supabase.com
+    - developers.cloudflare.com
+    - auth.shawnup.com
 requires:
   tools:
-    - git
+    - python3
 owner: personal
 verified: false

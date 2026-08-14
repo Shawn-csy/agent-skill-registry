@@ -1,131 +1,129 @@
 ---
 name: authentik-google-oidc
-description: Configure and troubleshoot a reusable Authentik-as-OIDC-broker login flow backed by Google, including Google account selection, Google-only authentication, PKCE/state/nonce validation, application sessions, and optional per-user Google Drive or Google Sheets OAuth. Use when a project needs Authentik OIDC, Google social login, a custom Authentik login flow, password login disabled, account selection, OAuth callbacks, or user-authorized Google storage access.
+description: Connect, configure, or troubleshoot a service against the existing Google-backed Authentik instance at auth.shawnup.com. Use when adding a Shawnup service to centralized login, choosing direct app OIDC, Supabase Auth custom OIDC, Cloudflare Access generic OIDC, or an auth proxy, registering callbacks, preserving app sessions or Supabase RLS, creating a per-service client, or validating discovery, health, claims, and logout.
 ---
 
-# Authentik + Google OIDC
+# Connect a service to auth.shawnup.com
 
-## Overview
+Onboard a service to the existing Authentik identity broker at `https://auth.shawnup.com`. Google source `google` is already configured. Do not rebuild Authentik or create another Google OAuth client during ordinary onboarding. Create a separate Authentik application/provider pair for every downstream service.
 
-Use Authentik as the application's OIDC provider and Google as Authentik's upstream identity source. Keep application authentication and user-authorized Google data access as two separate OAuth relationships: the first creates the application session, and the second grants Drive/Sheets permissions after login.
+## Placeholders
 
-Use placeholders throughout the workflow:
-
-- `{auth_host}`: the Authentik public hostname.
-- `{app_host}`: the application's public hostname.
-- `{app_slug}`: the Authentik application/provider slug.
-- `{google_source_slug}`: the Authentik Google source slug.
-- `{app_callback}`: the application's OIDC callback URL.
-
-## Agent compatibility
-
-Keep the workflow vendor-neutral: use the agent's available filesystem, shell, HTTP, browser, and GitHub tools rather than assuming a specific connector. The same Skill is compatible with Codex, Claude Code, Gemini CLI, and custom agent installations.
-
-- Codex: invoke `$authentik-google-oidc` when the task matches, then use available browser or GitHub connectors for interactive administration.
-- Claude Code or Gemini CLI: load `SKILL.md` and the relevant reference files directly; use the local shell and the agent's browser/API tools for the same steps.
-- Custom targets: provide a project directory, a safe shell, HTTPS access to the configured Authentik/Google endpoints, and a way to inspect browser redirects when account selection or flow loops are involved.
-
-Do not assume that one agent's browser connector, environment variable convention, or secret manager exists in another agent. Keep provider values in the target project's configuration and adapt only the integration layer.
+- `{app_host}`: public application host.
+- `{app_slug}`: unique lowercase Authentik application slug.
+- `{app_callback}`: exact callback supplied by the downstream OIDC client.
 
 ## Workflow
 
-### 1. Inspect the project and choose the client type
+### 1. Inspect before changing anything
 
-Determine whether the application has a backend that can exchange codes and keep cookies/secrets. Prefer an Authorization Code flow with PKCE for both public and confidential clients. Never use the Implicit flow for a new browser application.
+Identify the target project's framework, current session owner, public host, existing authentication library, callback route, authorization model, and deployment environment. Inspect local configuration and official product documentation; do not guess a platform-generated callback.
 
-Before changing a live Authentik instance, collect the application host, callback URL, Authentik host, desired application slug, allowed users/groups, and whether the app needs Drive/Sheets access. Never ask the user to paste a client secret into source control or chat.
+Read [references/shawnup-deployment.md](references/shawnup-deployment.md) first and confirm the shared instance is ready before making changes.
 
-Read the relevant reference before implementation:
+Select one topology:
 
-- Authentik admin configuration: [references/authentik.md](references/authentik.md)
-- Application OIDC implementation: [references/app-oidc.md](references/app-oidc.md)
-- Per-user Google Drive/Sheets access: [references/google-data-access.md](references/google-data-access.md)
+1. **Direct application OIDC**: a backend or trusted auth library exchanges the code and owns the application session. Read [references/app-oidc.md](references/app-oidc.md).
+2. **Supabase Auth bridge**: Supabase Auth consumes Authentik as a custom OIDC provider and continues issuing Supabase sessions/JWTs for RLS. Read [references/platform-bridges.md](references/platform-bridges.md).
+3. **Cloudflare Access bridge**: Cloudflare Access consumes Authentik as a generic OIDC IdP and gates the application at the edge. This does not create an application or Supabase session. Read [references/platform-bridges.md](references/platform-bridges.md).
+4. **No native OIDC support**: prefer Authentik's Proxy Provider/outpost or Cloudflare Access. Do not add a hand-written OAuth callback merely to protect a simple internal service.
 
-### 2. Configure Google as Authentik's upstream source
+If the target already uses Supabase Auth, preserve it unless the user explicitly wants an auth migration. If the target needs both edge protection and an in-app identity, treat those as separate layers and document the double-login/session behavior.
 
-Create a Google OAuth Web client whose callback is exactly:
+### 2. Collect the integration contract
 
-`https://{auth_host}/source/oauth/callback/{google_source_slug}/`
+Resolve these values before creating the provider:
 
-Create a Google OAuth source in Authentik with the same source slug and its Google client ID/secret. Use the source's Google-specific implementation where available. Request only the identity scopes needed for login (`openid`, `email`, `profile`) unless there is a documented reason to request more.
+- exact callback URI, including scheme, port, path, and trailing slash;
+- client type: confidential when a server can protect a secret, public otherwise;
+- scopes, normally `openid profile email`;
+- allowed users/groups and required role/group claims;
+- logout behavior and post-logout destination;
+- local development callbacks, listed explicitly rather than with a broad regex.
 
-### 3. Create the Authentik application/provider
+Use one client/provider per service and environment. Never share a client secret across unrelated services. Never put a client secret in a browser bundle, public environment variable, chat transcript, commit, or log.
 
-Create one OAuth2/OIDC provider and application for the app. Use the app callback exactly as registered, choose the Authorization Code flow with PKCE, and record the client ID, client secret only when the client is confidential, and issuer URL:
+### 3. Verify the shared Google source
 
-`https://{auth_host}/application/o/{app_slug}/`
+Do not create another Google OAuth client for each downstream service. The existing Google callback terminates at Authentik:
 
-The discovery document should be:
+`https://auth.shawnup.com/source/oauth/callback/google/`
 
-`https://{auth_host}/application/o/{app_slug}/.well-known/openid-configuration`
+Verify that the Google source exists, is enabled/promoted as intended, and is attached to the Identification stage used by the selected authentication flow. If the Authentik page only asks for email and shows no Google option, fix the Identification stage/source attachment before touching the downstream app.
 
-Use the provider's configured authentication and authorization flows. Keep invalidation/logout separate from the authentication entry flow.
+Read [references/authentik.md](references/authentik.md) before changing shared sources, flows, users, or groups. Shared-flow or Google-source changes are troubleshooting actions, not normal service onboarding.
 
-### 4. Make the login Google-only when requested
+### 4. Create the per-service Authentik provider
 
-Use a dedicated authentication flow for the app. Configure an Identification stage as source-only:
+In **Applications > Applications**, create the application and OAuth2/OIDC provider together.
 
-- select the Google source;
-- leave user fields empty when the source is the sole entry point;
-- do not attach a Password stage or set `password_stage` on Identification;
-- remove password enrollment/recovery links if local passwords must not be used;
-- end the flow with the required User Login stage.
+Configure:
 
-If a Source stage is used to embed Google inside another flow, do not add a User Login stage to the source's own flow; let the original flow resume. For a pure Google sign-in, a source-only Identification stage or direct source flow is simpler.
+- application/provider slug: `{app_slug}`;
+- redirect URI: `{app_callback}` with strict matching;
+- client type appropriate to the selected topology;
+- authorization code flow with PKCE;
+- signing key/certificate so downstream clients can validate JWTs through JWKS;
+- scopes `openid`, `profile`, and `email`, plus only required custom mappings;
+- per-provider issuer mode, unless an existing integration explicitly requires global issuer mode;
+- authentication, authorization, and invalidation flows with distinct purposes.
 
-Do not claim that the account picker works merely because Authentik shows a Google button. Verify the final browser request to Google contains `prompt=select_account`. If Authentik does not forward that parameter in the chosen flow/version, use a dedicated flow or supported customization that does, and test it in an incognito window.
+The default per-provider URLs are:
 
-### 5. Implement the application callback
+```text
+Issuer:    https://auth.shawnup.com/application/o/{app_slug}/
+Discovery: https://auth.shawnup.com/application/o/{app_slug}/.well-known/openid-configuration
+```
 
-Implement the protocol in [references/app-oidc.md](references/app-oidc.md). The minimum secure sequence is:
+Do not leave the redirect URI empty for first-launch learning. Do not use a wildcard/regex redirect unless the exact finite callback list is impractical and the regex is narrowly anchored.
 
-1. Generate state, nonce, and a high-entropy PKCE verifier.
-2. Store transient values in Secure, HttpOnly, SameSite=Lax cookies.
-3. Redirect to Authentik's discovered authorization endpoint with `openid profile email`, state, nonce, and the S256 code challenge.
-4. On callback, require a matching state and one-time code.
-5. Exchange the code at the discovered token endpoint, using the secret only on the server when applicable.
-6. Validate the ID token signature through the discovered JWKS, issuer, audience, nonce, expiry, and required claims.
-7. Upsert the user by stable OIDC `sub`, not by email alone, then issue an opaque application session cookie.
-8. Clear transient cookies and accept only a same-origin relative return path.
+### 5. Apply authorization deliberately
 
-Do not put Google access tokens, Authentik client secrets, refresh tokens, or raw ID tokens in browser storage, URLs, logs, or database columns without an explicit protection design.
+Treat authentication and authorization separately. Authentik application bindings/policies decide who may use the client; downstream app roles decide what authenticated users may do.
 
-### 6. Add optional Drive/Sheets authorization after login
+- Bind groups/users or policies when access is restricted.
+- Map only the claims the downstream service consumes.
+- Do not make a federated user an Authentik administrator merely so they can sign in to an app.
+- Keep a tested local break-glass administrator; Google-backed users commonly have no local Authentik password.
+- Keep ordinary app users external unless they need the Authentik user dashboard; internal/superuser status is not required for OIDC login.
 
-Treat Drive/Sheets as a second Google OAuth consent flow. Do not reuse the Authentik login token as a Google Drive token. Use the workflow in [references/google-data-access.md](references/google-data-access.md), including a separate state cookie, `access_type=offline`, account selection, server-side token refresh, encrypted refresh-token storage, and per-user selected Sheet/folder IDs.
+### 6. Configure the downstream client
 
-Gate capture or save features when a user has not selected a storage location. Provide create-new-Sheet and create-new-folder actions only after Drive is connected, and validate selected MIME types server-side.
+Pass the issuer, client ID, and server-only client secret to the selected integration layer. Use discovery instead of hard-coding authorization, token, userinfo, or JWKS paths. Key local identities by `(issuer, sub)`, not email alone.
 
-### 7. Validate end to end
+For application-managed sessions, follow [references/app-oidc.md](references/app-oidc.md). For Supabase Auth or Cloudflare Access, follow [references/platform-bridges.md](references/platform-bridges.md). Treat optional Google Drive/Sheets access as a second OAuth grant and read [references/google-data-access.md](references/google-data-access.md).
 
-Test each boundary independently:
+### 7. Validate without exposing secrets
 
-- Authentik discovery returns the expected issuer, authorization endpoint, token endpoint, and JWKS URI.
-- Google redirects to the Authentik source callback, not directly to the app.
-- Authentik redirects to the exact app callback with a code and state.
-- A second Google account is selectable and the selected identity reaches the app.
-- A wrong state, nonce, issuer, audience, or redirect URI is rejected.
-- A user cannot reach a password form when Google-only mode is enabled.
-- Logout/invalidation returns to a stable entry point and does not redirect in a loop.
-- Drive/Sheets consent is separate, refresh tokens survive access-token expiry, and only the selected resources are written.
-- The app behaves in mobile browsers and opens an external browser from embedded browsers such as LINE when required.
+Run the bundled read-only check:
 
-For symptoms, inspect the browser network trace and Authentik event logs first. A callback URL mismatch, stale Authentik session, missing User Login stage, password stage binding, source slug mismatch, or an invalidation flow that points back to login are more likely than an application rendering bug.
+```bash
+python3 scripts/check_oidc.py \
+  --issuer "https://auth.shawnup.com/application/o/{app_slug}/" \
+  --health-url "https://auth.shawnup.com/-/health/ready/"
+```
 
-## Non-negotiable security rules
+Then test in a private browser session:
 
-- Use HTTPS for every non-localhost redirect URI.
-- Match redirect URIs exactly, including path, trailing slash, scheme, and port.
-- Use PKCE S256, state, and nonce; rotate or expire transient cookies quickly.
-- Key application users by `(issuer, sub)` or an equivalent stable provider identity.
-- Keep Google Drive refresh tokens encrypted with an authenticated cipher and a separately managed key.
-- Request the smallest Google scopes that satisfy the feature.
-- Redact authorization codes and tokens from logs and error responses.
-- Do not disable Authentik's safety controls globally to fix one application's loop; isolate changes to the app's provider/flows.
+1. Start at the downstream service, not the Authentik dashboard.
+2. Confirm the redirect chain is service/platform -> Authentik -> Google -> Authentik -> exact service/platform callback.
+3. Confirm the final service session exists and the expected user/claims are present.
+4. Confirm a disallowed user is denied by policy.
+5. Confirm state, nonce, issuer, audience, expiry, signature, and callback mismatch failures are rejected.
+6. Test logout separately from login and ensure there is no redirect loop.
 
-## References
+For failures, inspect the browser `Location` chain and Authentik event logs first. Common causes are callback mismatch, wrong issuer mode, missing signing key, Google source not attached to Identification, stale Authentik/Google sessions, incorrect client type, or an invalidation flow that restarts login.
 
-- [Authentik admin flow and source configuration](references/authentik.md)
-- [Application OIDC protocol contract](references/app-oidc.md)
-- [Google Drive/Sheets OAuth contract](references/google-data-access.md)
+## Completion report
 
+Return a redacted integration contract containing the topology, app/provider slug, issuer, discovery URL, callback URI, scopes, authorization policy, health result, and end-to-end test result. State where the secret was stored without printing it. List any manual console step that remains.
+
+## Security rules
+
+- Use HTTPS for every non-localhost callback.
+- Use Authorization Code with PKCE, state, and nonce.
+- Keep redirect URI matching exact and callback return paths same-origin.
+- Keep client secrets, codes, raw tokens, and refresh tokens out of logs and browser storage.
+- Use a signing key and validate tokens through the discovered JWKS.
+- Request minimal scopes and keep Google data authorization separate from login.
+- Isolate app-specific fixes; do not weaken global Authentik safety controls.
