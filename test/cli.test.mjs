@@ -96,8 +96,16 @@ test("build publishes distinct human and agent surfaces", async () => {
   assert.equal(discovery.type, "agent-skill-registry");
   assert.equal(discovery.catalog, "/registry.json");
   assert.equal(discovery.skill, "/skills/{slug}/SKILL.md");
+  assert.equal(discovery.retrieval.catalog, "GET /registry.json");
+  assert.equal(discovery.crud.transport, "git");
+  assert.match(discovery.crud.publish, /npm test.*npm run build.*git push -u origin <branch>/);
+  assert.match(discovery.crud.pullRequest, /<branch> to main/);
+  assert.match(discovery.crud.merge, /CI passes/);
 
   const agentGuide = await readFile(path.join(root, "site", "llms.txt"), "utf8");
-  assert.match(agentGuide, /machine-readable endpoints/);
+  assert.match(agentGuide, /static and read-only over HTTP/);
+  assert.match(agentGuide, /Create: add skills\/\{slug\}\/manifest\.yaml/);
+  assert.match(agentGuide, /open a pull request to main/);
+  assert.match(agentGuide, /GET \/skills\/\{slug\}\/SKILL\.md/);
   assert.match(agentGuide, /skill install <slug> --target codex/);
 });
