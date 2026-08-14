@@ -1,6 +1,6 @@
-# Personal Agent Skill Registry
+# Shawnup Skill Index
 
-A small, Git-native registry with a usable V1 CLI for searching, installing and updating cross-agent Skills.
+A small, Git-native index with a usable CLI for searching, installing and updating reusable skills.
 
 ## Quick start
 

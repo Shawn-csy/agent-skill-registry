@@ -86,9 +86,11 @@ test("update detects local edits and supports force", async () => {
 
 test("build publishes distinct human and agent surfaces", async () => {
   const humanPage = await readFile(path.join(root, "site", "index.html"), "utf8");
-  assert.match(humanPage, /Give your agent better instincts/);
-  assert.match(humanPage, /Machine-readable by design/);
+  assert.match(humanPage, /Shawnup Skill Index/);
+  assert.match(humanPage, /Machine-readable first/);
   assert.match(humanPage, /application\/json/);
+  assert.doesNotMatch(humanPage, /Agent Skill Registry/);
+  assert.doesNotMatch(humanPage, /skill-count|updated-at|Registry summary/);
 
   const discovery = JSON.parse(await readFile(path.join(root, "site", ".well-known", "agent-skill-registry.json"), "utf8"));
   assert.equal(discovery.type, "agent-skill-registry");

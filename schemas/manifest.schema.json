@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://skills.example.com/schemas/manifest.schema.json",
-  "title": "Agent Skill Manifest",
+  "title": "Skill Manifest",
   "type": "object",
   "required": [
     "schemaVersion",

@@ -53,7 +53,7 @@ function stateDir(args: ParsedArgs): string {
 }
 
 function printUsage(): void {
-  console.log(`Personal Agent Skill Registry CLI
+  console.log(`Shawnup Skill Index CLI
 
 Usage:
   skill search <term>
