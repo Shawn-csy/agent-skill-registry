@@ -1,5 +1,4 @@
 interface:
-  display_name: "Authentik + Google OIDC"
-  short_description: "設定 Authentik Google 登入與應用程式 OIDC 流程"
-  default_prompt: "Use $authentik-google-oidc to configure Authentik Google OIDC login for this application."
-
+  display_name: "Connect to auth.shawnup.com"
+  short_description: "把新服務安全接到 auth.shawnup.com"
+  default_prompt: "Use $authentik-google-oidc to connect this service to auth.shawnup.com."

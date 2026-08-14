@@ -1,92 +1,52 @@
-# Application OIDC implementation reference
+# Direct application OIDC reference
 
-Use this reference when implementing the application-side login against Authentik.
+Use this reference only when the application or its trusted auth library owns the OIDC callback and application session. If Supabase Auth or Cloudflare Access owns the callback, use `platform-bridges.md` instead.
 
-## Configuration contract
+## Prefer a maintained library
 
-Use environment variables or the framework's secret manager. A portable configuration looks like:
+Use the framework's maintained OIDC/OAuth library and configure it from discovery. Do not hand-roll JWT verification, PKCE, or cookie cryptography when a mature implementation exists.
+
+Typical server-side configuration:
 
 ```text
-AUTHENTIK_ISSUER=https://{auth_host}/application/o/{app_slug}/
+AUTHENTIK_ISSUER=https://auth.shawnup.com/application/o/{app_slug}/
 AUTHENTIK_CLIENT_ID=...
 AUTHENTIK_CLIENT_SECRET=...       # confidential backend only
-AUTHENTIK_REDIRECT_URI=https://{app_host}/api/auth/callback
-NEXT_PUBLIC_SITE_URL=https://{app_host}
+AUTHENTIK_REDIRECT_URI=https://{app_host}/api/auth/callback/authentik
+APP_URL=https://{app_host}
 ```
 
-Keep client secrets server-only. Never prefix them with a public-client environment variable convention.
+Keep the secret server-only. Never use a public/browser environment-variable prefix for it.
 
-## Login route
+## Authorization request
 
-The login route should:
+Use Authorization Code with PKCE S256. Generate high-entropy state, nonce, and PKCE verifier. Store transient values in short-lived Secure, HttpOnly, SameSite=Lax cookies or a server-side transaction store.
 
-1. Fetch and cache the issuer's OIDC discovery document for a short period.
-2. Generate an unpredictable state, nonce, and PKCE verifier.
-3. Encode only a validated same-origin relative return path in state, or store it server-side.
-4. Set short-lived Secure, HttpOnly, SameSite=Lax cookies for state, nonce, and verifier.
-5. Redirect to the discovered authorization endpoint with:
+Request `openid profile email` and send the exact registered callback. Preserve only a validated same-origin relative return path.
 
-```text
-client_id={client_id}
-response_type=code
-redirect_uri={exact_callback}
-scope=openid profile email
-state={state}
-nonce={nonce}
-code_challenge={base64url(sha256(verifier))}
-code_challenge_method=S256
-```
+## Callback
 
-If the application needs the Google account picker, first make sure the Authentik flow forwards `prompt=select_account` to Google. Do not assume a parameter added at the wrong hop will reach the upstream provider.
+Require all of the following:
 
-## Callback route
+- no OAuth error and a one-time authorization code;
+- state matching the transaction;
+- the original PKCE verifier and nonce;
+- code exchange using the exact callback;
+- signature validation through the discovered JWKS;
+- exact issuer and expected audience/client ID;
+- matching nonce and valid time claims;
+- stable `sub` and required claims.
 
-Reject the callback unless all of these are true:
+Key the local identity by `(issuer, sub)`. Treat email, name, and avatar as mutable profile attributes.
 
-- `code` is present and no OAuth error was returned.
-- The state equals the one in the transient cookie.
-- The verifier and nonce are present and still within their short lifetime.
-- The code exchange uses the exact registered redirect URI.
-- The ID token signature validates against the discovered JWKS.
-- `iss` equals the configured issuer.
-- `aud` contains the configured client ID.
-- `nonce` equals the generated nonce.
-- `exp` and other time claims are valid.
-- `sub` and a usable email claim are present.
+After validation, create an opaque application session. Store only a hash of the session token server-side and set the raw token in a Secure, HttpOnly, SameSite=Lax cookie. Clear the OIDC transaction cookies.
 
-Exchange the code at the discovered token endpoint. For a confidential client, authenticate the server-side request with the client secret. For a public client, send the client ID and rely on PKCE. Do not expose token exchange errors containing codes or tokens to the browser.
+Do not store access tokens, ID tokens, refresh tokens, or client secrets in `localStorage`, URLs, HTML, analytics, or unredacted logs. A pure SPA should use a vetted OIDC client with PKCE; prefer a backend-for-frontend when available.
 
-## User and session model
+## Logout
 
-Use a stable key such as `(issuer, sub)` for the local user record. Email can change and must not be the sole identity key. Store display name, email, and avatar as profile attributes that can be refreshed on login.
+Delete the local application session first. Invoke Authentik end-session only when single logout is required, and register/test the post-logout return separately. Local logout, Authentik logout, and Google logout are distinct operations.
 
-After validation:
+## Verification
 
-1. Upsert the local user.
-2. Create a random opaque session token.
-3. Store only a hash of that token server-side, with user ID and expiry.
-4. Set the raw token in a Secure, HttpOnly, SameSite=Lax cookie.
-5. Clear state, nonce, and verifier cookies.
-6. Redirect to a validated local return path.
-
-Use an explicit logout route that deletes the local session and expires the session cookie. If using Authentik end-session, provide a safe post-logout return URI and test it separately from login.
-
-## Common framework mapping
-
-For a server-rendered app, keep all OAuth code in server routes/actions and protect pages/API routes by resolving the session cookie. For a SPA, use a vetted OIDC client library and avoid hand-rolling token storage; if a backend exists, prefer the backend-for-frontend pattern.
-
-Do not put ID tokens or access tokens in `localStorage`, query parameters, HTML, analytics payloads, or error telemetry. Do not accept a `return_to` value that starts with `//`, an absolute URL, or a different origin.
-
-## Minimal verification tests
-
-Test these cases before release:
-
-- Fresh login succeeds.
-- A second Google account can be chosen.
-- Refreshing an authenticated page reuses the session without restarting OIDC.
-- Missing, altered, or replayed state is rejected.
-- Altered nonce, wrong issuer, wrong audience, expired token, and invalid signature are rejected.
-- An unregistered callback URI fails safely.
-- Logout expires the app session.
-- Login failure does not leave a reusable code or transient cookie behind.
-
+Test fresh login, repeat login, altered/replayed state, nonce mismatch, wrong issuer/audience, invalid signature, expired token, unregistered callback, local session expiry, and logout. Confirm a second Google account can be selected only when that is an explicit requirement.
