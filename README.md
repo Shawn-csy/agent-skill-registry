@@ -39,14 +39,15 @@ For a real Agent target, use `--target codex`, `--target claude` or `--target ge
 - `site/` is a static registry browser ready to deploy to Cloudflare Pages.
 - `dist/cli.js` is the executable behind the `skill` command.
 
-The repository includes a GitHub Actions workflow that builds and deploys `site/` on every push to `main`. Configure these repository secrets before enabling it:
+Cloudflare Pages is connected directly to the GitHub repository and deploys the production `main` branch automatically. Its production build settings are:
 
 ```text
-CLOUDFLARE_API_TOKEN
-CLOUDFLARE_ACCOUNT_ID
+Build command: npm run build
+Build output directory: site
+Root directory: /
 ```
 
-The Pages project name is `skill-registry`. The deployed site must expose these paths:
+The Pages project name is `skill-registry`, and the deployed site exposes these paths:
 
 ```text
 /registry.json
@@ -62,7 +63,7 @@ Manual deployment, if needed:
 npm run deploy:pages
 ```
 
-After deployment, attach the custom domain `skill.shawnup.com` to that Pages project and verify `https://skill.shawnup.com/registry.json` before distributing the CLI.
+The custom domain `skill.shawnup.com` is attached to that Pages project and points to `skill-registry.pages.dev`.
 
 ## CLI commands
 
