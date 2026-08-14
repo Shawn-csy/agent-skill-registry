@@ -1,6 +1,6 @@
 schemaVersion: 1
 name: authentik-google-oidc
-version: 1.0.0
+version: 1.0.1
 description: Authentik as a Google-backed OIDC broker with secure application sessions and optional per-user Google Drive or Sheets access.
 tags:
   - authentik
@@ -16,6 +16,7 @@ compatibility:
   - claude-code
   - codex
   - gemini-cli
+  - custom
 permissions:
   filesystem:
     read: true
@@ -24,7 +25,11 @@ permissions:
   network:
     - accounts.google.com
     - oauth2.googleapis.com
+    - www.googleapis.com
+    - sheets.googleapis.com
+    - openidconnect.googleapis.com
     - docs.goauthentik.io
+    - configured Authentik instance
 requires:
   tools:
     - git

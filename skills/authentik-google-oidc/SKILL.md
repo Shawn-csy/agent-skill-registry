@@ -17,6 +17,16 @@ Use placeholders throughout the workflow:
 - `{google_source_slug}`: the Authentik Google source slug.
 - `{app_callback}`: the application's OIDC callback URL.
 
+## Agent compatibility
+
+Keep the workflow vendor-neutral: use the agent's available filesystem, shell, HTTP, browser, and GitHub tools rather than assuming a specific connector. The same Skill is compatible with Codex, Claude Code, Gemini CLI, and custom agent installations.
+
+- Codex: invoke `$authentik-google-oidc` when the task matches, then use available browser or GitHub connectors for interactive administration.
+- Claude Code or Gemini CLI: load `SKILL.md` and the relevant reference files directly; use the local shell and the agent's browser/API tools for the same steps.
+- Custom targets: provide a project directory, a safe shell, HTTPS access to the configured Authentik/Google endpoints, and a way to inspect browser redirects when account selection or flow loops are involved.
+
+Do not assume that one agent's browser connector, environment variable convention, or secret manager exists in another agent. Keep provider values in the target project's configuration and adapt only the integration layer.
+
 ## Workflow
 
 ### 1. Inspect the project and choose the client type
