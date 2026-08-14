@@ -9,6 +9,7 @@
   "scripts": {
     "build": "npm run clean && tsc && node dist/registry-builder.js",
     "clean": "rm -rf dist generated site",
+    "prepare": "npm run build",
     "test": "npm run build && node --test test/*.test.mjs",
     "skill": "node dist/cli.js",
     "deploy:pages": "npm run build && npx wrangler pages deploy site --project-name skill-registry"

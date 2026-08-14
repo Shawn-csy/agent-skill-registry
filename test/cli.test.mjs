@@ -83,3 +83,19 @@ test("update detects local edits and supports force", async () => {
   assert.match(updated, /Updated cloudflare-deploy 1\.0\.0 → 1\.1\.0/);
   assert.match(await readFile(path.join(skillDir, "cloudflare-deploy", "SKILL.md"), "utf8"), /Updated content/);
 });
+
+test("build publishes distinct human and agent surfaces", async () => {
+  const humanPage = await readFile(path.join(root, "site", "index.html"), "utf8");
+  assert.match(humanPage, /Give your agent better instincts/);
+  assert.match(humanPage, /Machine-readable by design/);
+  assert.match(humanPage, /application\/json/);
+
+  const discovery = JSON.parse(await readFile(path.join(root, "site", ".well-known", "agent-skill-registry.json"), "utf8"));
+  assert.equal(discovery.type, "agent-skill-registry");
+  assert.equal(discovery.catalog, "/registry.json");
+  assert.equal(discovery.skill, "/skills/{slug}/SKILL.md");
+
+  const agentGuide = await readFile(path.join(root, "site", "llms.txt"), "utf8");
+  assert.match(agentGuide, /machine-readable endpoints/);
+  assert.match(agentGuide, /skill install <slug> --target codex/);
+});
