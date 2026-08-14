@@ -7,6 +7,23 @@ export interface AgentDiscoveryDocument {
   instructions: string;
   skill: string;
   manifest: string;
+  retrieval: {
+    catalog: string;
+    manifest: string;
+    instructions: string;
+  };
+  crud: {
+    transport: "git";
+    repository: string;
+    source: string;
+    create: string;
+    update: string;
+    delete: string;
+    branch: string;
+    publish: string;
+    pullRequest: string;
+    merge: string;
+  };
   cli: {
     repository: string;
     install: string;
@@ -24,6 +41,23 @@ export function createAgentDiscovery(): AgentDiscoveryDocument {
     instructions: "/llms.txt",
     skill: "/skills/{slug}/SKILL.md",
     manifest: "/skills/{slug}/manifest.json",
+    retrieval: {
+      catalog: "GET /registry.json",
+      manifest: "GET /skills/{slug}/manifest.json",
+      instructions: "GET /skills/{slug}/SKILL.md",
+    },
+    crud: {
+      transport: "git",
+      repository: "https://github.com/Shawn-csy/agent-skill-registry",
+      source: "skills/{slug}/",
+      create: "Add skills/{slug}/manifest.yaml and skills/{slug}/SKILL.md",
+      update: "Edit the source files under skills/{slug}/",
+      delete: "Remove the source directory skills/{slug}/",
+      branch: "skill/{slug}-<change>",
+      publish: "npm test && npm run build && git push -u origin <branch>",
+      pullRequest: "Open a pull request from <branch> to main",
+      merge: "Merge only after CI passes; Pages deploys main",
+    },
     cli: {
       repository: "https://github.com/Shawn-csy/agent-skill-registry",
       install: "npm install -g github:Shawn-csy/agent-skill-registry",
@@ -37,12 +71,12 @@ export function renderAgentGuide(): string {
 
 The root page is for humans. Agents should use these machine-readable endpoints.
 
-## Endpoints
+## Read
 
-- Catalog: /registry.json
-- Discovery: /.well-known/agent-skill-registry.json
-- Manifest: /skills/{slug}/manifest.json
-- Instructions: /skills/{slug}/SKILL.md
+- GET /registry.json — list and filter skills by slug, description, tags, or compatibility.
+- GET /.well-known/agent-skill-registry.json — read this machine-readable contract.
+- GET /skills/{slug}/manifest.json — inspect metadata, permissions, requirements, and files.
+- GET /skills/{slug}/SKILL.md — load the instructions only after the skill is relevant.
 
 ## Retrieval
 
@@ -50,6 +84,19 @@ The root page is for humans. Agents should use these machine-readable endpoints.
 2. Read the selected manifest before loading SKILL.md.
 3. Check permissions and requires before recommending or using a skill.
 4. Load SKILL.md only when the skill is relevant.
+
+## CRUD / write model
+
+The deployed site is static and read-only over HTTP. It has no POST, PATCH, or DELETE endpoint.
+Use the Git repository as the write surface:
+
+- Create: add skills/{slug}/manifest.yaml and skills/{slug}/SKILL.md.
+- Read: use the HTTP endpoints above, or inspect the source directory.
+- Update: edit the source files under skills/{slug}/ and increment the manifest version.
+- Delete: remove skills/{slug}/.
+- Publish: run npm test, run npm run build, commit on a branch, push the branch, and open a pull request to main.
+
+After the pull request is merged, Cloudflare Pages rebuilds the public catalog from main. Never write to /registry.json directly; it is generated output.
 
 ## CLI
 
@@ -71,36 +118,36 @@ export function renderSite(): string {
   <style>
     :root {
       color-scheme: light;
-      --ink: #152033;
-      --muted: #65738a;
-      --line: #dbe3ee;
-      --panel: rgba(255, 255, 255, .84);
-      --canvas: #f4f7fb;
-      --accent: #3867f4;
-      --accent-dark: #2045b9;
-      --accent-soft: #eaf0ff;
-      --success: #167a5a;
-      --success-soft: #e6f6ef;
-      --warning: #9a5b11;
-      --warning-soft: #fff4df;
-      --code: #17223d;
+      --ink: #332f40;
+      --muted: #756f80;
+      --line: #ddd7e3;
+      --panel: rgba(255, 253, 255, .84);
+      --canvas: #f5f1f6;
+      --accent: #8d7999;
+      --accent-dark: #66536f;
+      --accent-soft: #eee7f1;
+      --success: #5f7f72;
+      --success-soft: #e8f0eb;
+      --warning: #94706f;
+      --warning-soft: #f3e8e7;
+      --code: #2a2334;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     html[data-theme="dark"] {
       color-scheme: dark;
-      --ink: #edf2ff;
-      --muted: #9caac2;
-      --line: #2c3a54;
-      --panel: rgba(24, 36, 61, .88);
-      --canvas: #0d1424;
-      --accent: #82a0ff;
-      --accent-dark: #b9c8ff;
-      --accent-soft: #1c2b52;
-      --success: #61d7ab;
-      --success-soft: #123b32;
-      --warning: #f3bf70;
-      --warning-soft: #3e2d16;
-      --code: #080e1d;
+      --ink: #f4eff7;
+      --muted: #b9afc1;
+      --line: #43384b;
+      --panel: rgba(38, 31, 45, .9);
+      --canvas: #19151e;
+      --accent: #b59bc0;
+      --accent-dark: #d6bddc;
+      --accent-soft: #3b2d42;
+      --success: #a5c5b4;
+      --success-soft: #243a34;
+      --warning: #d2a8a4;
+      --warning-soft: #443233;
+      --code: #100d14;
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -108,7 +155,7 @@ export function renderSite(): string {
       margin: 0;
       min-width: 320px;
       color: var(--ink);
-      background: radial-gradient(circle at 12% 0%, rgba(112, 145, 255, .14) 0, transparent 34rem), radial-gradient(circle at 90% 10%, rgba(74, 210, 167, .10) 0, transparent 30rem), var(--canvas);
+      background: radial-gradient(circle at 12% 0%, rgba(156, 132, 169, .18) 0, transparent 34rem), radial-gradient(circle at 90% 10%, rgba(205, 181, 198, .12) 0, transparent 30rem), var(--canvas);
       transition: background .2s ease, color .2s ease;
     }
     a { color: inherit; }
@@ -134,12 +181,12 @@ export function renderSite(): string {
     .button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 14px; border: 1px solid transparent; border-radius: 10px; font-size: 12px; font-weight: 850; text-decoration: none; }
     .button-primary { color: #fff; background: var(--accent); }
     .button-secondary { color: var(--ink); border-color: var(--line); background: var(--panel); }
-    .agent-card { padding: 22px; border: 1px solid #30416f; border-radius: 18px; color: #eef3ff; background: #182440; box-shadow: 0 22px 55px rgba(32, 57, 111, .16); }
+    .agent-card { padding: 22px; border: 1px solid #594b65; border-radius: 18px; color: #f2ebf5; background: #32283a; box-shadow: 0 22px 55px rgba(65, 42, 76, .18); }
     .agent-card h2 { margin: 11px 0 8px; font-size: 24px; letter-spacing: -.05em; }
-    .agent-card p { margin: 0; color: #afbddb; font-size: 13px; line-height: 1.55; }
-    .agent-endpoint { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 17px; padding: 10px 11px; border: 1px solid rgba(176, 195, 255, .2); border-radius: 10px; background: rgba(8, 16, 36, .35); }
-    .agent-endpoint code { overflow: hidden; color: #dce6ff; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-    .copy-button { flex: 0 0 auto; padding: 6px 8px; border: 1px solid rgba(176, 195, 255, .28); border-radius: 7px; color: #eaf0ff; background: transparent; font-size: 10px; font-weight: 850; }
+    .agent-card p { margin: 0; color: #c8b9ce; font-size: 13px; line-height: 1.55; }
+    .agent-endpoint { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 17px; padding: 10px 11px; border: 1px solid rgba(220, 200, 230, .2); border-radius: 10px; background: rgba(19, 12, 24, .35); }
+    .agent-endpoint code { overflow: hidden; color: #eadff0; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .copy-button { flex: 0 0 auto; padding: 6px 8px; border: 1px solid rgba(220, 200, 230, .28); border-radius: 7px; color: #f0e8f3; background: transparent; font-size: 10px; font-weight: 850; }
     .copy-button:hover { background: rgba(255, 255, 255, .1); }
     .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 17px; }
     .section-heading h2 { margin: 6px 0 0; font-size: 29px; letter-spacing: -.06em; }
@@ -147,10 +194,10 @@ export function renderSite(): string {
     .search-wrap { position: relative; }
     .search-wrap::before { content: "⌕"; position: absolute; top: 10px; left: 13px; color: #8794a9; font-size: 21px; line-height: 1; }
     .search { width: 100%; padding: 12px 13px 12px 39px; border: 1px solid var(--line); border-radius: 10px; outline: none; color: var(--ink); background: var(--panel); }
-    .search:focus { border-color: #91a8f7; box-shadow: 0 0 0 4px var(--accent-soft); }
+    .search:focus { border-color: #b9a7c5; box-shadow: 0 0 0 4px var(--accent-soft); }
     .filter-bar { display: flex; flex-wrap: wrap; gap: 6px; }
     .filter { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: var(--panel); font-size: 11px; font-weight: 850; }
-    .filter.active { border-color: #9eb2f7; color: var(--accent-dark); background: var(--accent-soft); }
+    .filter.active { border-color: #baa4c2; color: var(--accent-dark); background: var(--accent-soft); }
     .results-line { display: flex; justify-content: space-between; gap: 14px; margin: 11px 0; color: var(--muted); font-size: 11px; font-weight: 750; }
     .skill-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     .skill-card { display: flex; min-height: 242px; flex-direction: column; padding: 17px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); box-shadow: 0 10px 25px rgba(28, 49, 88, .04); }
@@ -162,13 +209,13 @@ export function renderSite(): string {
     .description { min-height: 43px; margin: 11px 0 13px; color: var(--muted); font-size: 13px; line-height: 1.5; }
     .tag-row, .compat-row { display: flex; flex-wrap: wrap; gap: 5px; }
     .tag, .compat { padding: 4px 7px; border-radius: 6px; font-size: 9px; font-weight: 850; }
-    .tag { color: var(--muted); background: rgba(127, 145, 175, .14); }
+    .tag { color: var(--muted); background: rgba(125, 112, 137, .14); }
     .compat { color: var(--accent-dark); background: var(--accent-soft); }
     .card-meta { margin-top: 14px; color: var(--muted); font-size: 10px; }
     .meta-label { margin-right: 7px; color: var(--muted); font-weight: 850; }
     .meta-value { color: var(--ink); font-weight: 850; }
     .card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 16px; }
-    .install-preview { overflow: hidden; max-width: 70%; padding: 8px 9px; border-radius: 7px; color: var(--muted); background: rgba(127, 145, 175, .12); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .install-preview { overflow: hidden; max-width: 70%; padding: 8px 9px; border-radius: 7px; color: var(--muted); background: rgba(125, 112, 137, .12); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
     .details-button { padding: 8px 10px; border: 0; border-radius: 8px; color: #fff; background: var(--ink); font-size: 10px; font-weight: 900; }
     .empty { padding: 36px 18px; border: 1px dashed var(--line); border-radius: 13px; color: var(--muted); text-align: center; }
     footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin: 60px 0 24px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
@@ -184,7 +231,7 @@ export function renderSite(): string {
     .dialog-panel { padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
     .dialog-panel h3 { margin: 0 0 8px; color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
     .dialog-panel p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
-    .skill-preview { max-height: 230px; overflow: auto; margin: 8px 0 0; padding: 12px; border-radius: 9px; color: #dce7ff; background: var(--code); font: 11px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }
+    .skill-preview { max-height: 230px; overflow: auto; margin: 8px 0 0; padding: 12px; border-radius: 9px; color: #eadff0; background: var(--code); font: 11px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     @media (max-width: 780px) { .hero { grid-template-columns: 1fr; padding-top: 42px; } .skill-grid { grid-template-columns: 1fr; } .controls { grid-template-columns: 1fr; } }
     @media (max-width: 540px) { .shell { width: min(100% - 26px, 1120px); } nav a[href="#catalog"], nav a[href="#agent"] { display: none; } h1 { font-size: 49px; } .dialog-grid { grid-template-columns: 1fr; } }

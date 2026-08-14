@@ -65,6 +65,27 @@ npm run deploy:pages
 
 The custom domain `skill.shawnup.com` is attached to that Pages project and points to `skill-registry.pages.dev`.
 
+## Agent access and CRUD
+
+Agents retrieve data over HTTP:
+
+```text
+GET https://skill.shawnup.com/registry.json
+GET https://skill.shawnup.com/skills/<slug>/manifest.json
+GET https://skill.shawnup.com/skills/<slug>/SKILL.md
+```
+
+The deployed site is static, so it does not accept HTTP `POST`, `PATCH` or `DELETE`. CRUD uses the Git source of truth instead:
+
+```text
+Create: add skills/<slug>/manifest.yaml and skills/<slug>/SKILL.md
+Update: edit skills/<slug>/ and increment the manifest version
+Delete: remove skills/<slug>/
+Publish: create a branch, run npm test && npm run build, push the branch, and open a PR to main
+```
+
+After the PR passes CI and is merged, Cloudflare Pages rebuilds the public catalog. Agents can discover this contract from `/.well-known/agent-skill-registry.json` or `/llms.txt`. `registry.json` and the deployed skill files are generated output; do not edit them directly.
+
 ## CLI commands
 
 ```bash
