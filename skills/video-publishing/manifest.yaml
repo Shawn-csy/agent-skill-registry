@@ -1,0 +1,35 @@
+schemaVersion: 1
+name: video-publishing
+version: 1.0.0
+description: Select, produce, publish, and verify short videos, including paired Traditional Chinese and English variants with shared language-neutral visuals.
+tags:
+  - video
+  - shorts
+  - bilingual
+  - youtube
+  - reels
+  - publishing
+  - ffmpeg
+entrypoint: SKILL.md
+compatibility:
+  - claude-code
+  - codex
+  - gemini-cli
+  - custom
+permissions:
+  filesystem:
+    read: true
+    write: true
+  shell: true
+  network:
+    - YouTube Studio
+    - Facebook
+    - Instagram
+    - approved video hosting
+requires:
+  tools:
+    - ffmpeg
+    - ffprobe
+    - git
+owner: personal
+verified: false

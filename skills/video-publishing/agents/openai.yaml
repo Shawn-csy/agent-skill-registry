@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Publishing Factory"
+  short_description: "Produce and verify bilingual short videos"
+  default_prompt: "Use $video-publishing to plan, produce, publish, and verify the requested short-video language variants."
