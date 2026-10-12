@@ -1,0 +1,4 @@
+interface:
+  display_name: "Remote Game Asset Generation"
+  short_description: "Generate consistent game art through a remote local-AI API"
+  default_prompt: "Use $remote-game-asset-generation to generate and integrate game assets with a fixed style profile."

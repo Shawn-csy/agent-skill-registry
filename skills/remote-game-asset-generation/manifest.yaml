@@ -1,0 +1,32 @@
+schemaVersion: 1
+name: remote-game-asset-generation
+version: 1.0.0
+description: Generate and integrate consistent game art through a remote local-AI image API, using versioned style profiles, LoRA workflows, structured asset prompts, and safe Godot fallbacks.
+tags:
+  - game-development
+  - image-generation
+  - local-ai
+  - comfyui
+  - lora
+  - godot
+  - art-direction
+entrypoint: SKILL.md
+compatibility:
+  - claude-code
+  - codex
+  - gemini-cli
+  - custom
+permissions:
+  filesystem:
+    read: true
+    write: true
+  shell: true
+  network:
+    - configured remote local-AI image API
+    - configured ComfyUI instance
+requires:
+  tools:
+    - git
+    - curl
+owner: personal
+verified: false
