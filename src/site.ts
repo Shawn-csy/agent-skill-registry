@@ -118,227 +118,324 @@ export function renderSite(): string {
   <style>
     :root {
       color-scheme: light;
-      --ink: #332f40;
-      --muted: #756f80;
-      --line: #ddd7e3;
-      --panel: rgba(255, 253, 255, .84);
-      --canvas: #f5f1f6;
-      --accent: #8d7999;
-      --accent-dark: #66536f;
-      --accent-soft: #eee7f1;
-      --success: #5f7f72;
-      --success-soft: #e8f0eb;
-      --warning: #94706f;
-      --warning-soft: #f3e8e7;
-      --code: #2a2334;
+      --canvas: #f7f8fa;
+      --surface: #ffffff;
+      --surface-subtle: #f1f4f8;
+      --surface-strong: #e8edf4;
+      --ink: #172033;
+      --muted: #606b80;
+      --faint: #8993a5;
+      --line: #dfe4ec;
+      --line-strong: #c8d0dc;
+      --accent: #2864dc;
+      --accent-hover: #1f52bc;
+      --accent-soft: #eaf1ff;
+      --success: #18794e;
+      --success-soft: #e8f6ef;
+      --warning: #92600a;
+      --warning-soft: #fff4d6;
+      --code: #111827;
+      --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 8px 30px rgba(16, 24, 40, .05);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     html[data-theme="dark"] {
       color-scheme: dark;
-      --ink: #f4eff7;
-      --muted: #b9afc1;
-      --line: #43384b;
-      --panel: rgba(38, 31, 45, .9);
-      --canvas: #19151e;
-      --accent: #b59bc0;
-      --accent-dark: #d6bddc;
-      --accent-soft: #3b2d42;
-      --success: #a5c5b4;
-      --success-soft: #243a34;
-      --warning: #d2a8a4;
-      --warning-soft: #443233;
-      --code: #100d14;
+      --canvas: #0c111b;
+      --surface: #121925;
+      --surface-subtle: #182131;
+      --surface-strong: #202b3d;
+      --ink: #edf2f8;
+      --muted: #a6b0c1;
+      --faint: #78849a;
+      --line: #273247;
+      --line-strong: #3a475e;
+      --accent: #76a6ff;
+      --accent-hover: #a4c3ff;
+      --accent-soft: #192b4f;
+      --success: #77c9a1;
+      --success-soft: #17372b;
+      --warning: #e4bd68;
+      --warning-soft: #3a2e18;
+      --code: #080d15;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .2), 0 14px 36px rgba(0, 0, 0, .16);
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      min-width: 320px;
-      color: var(--ink);
-      background: radial-gradient(circle at 12% 0%, rgba(156, 132, 169, .18) 0, transparent 34rem), radial-gradient(circle at 90% 10%, rgba(205, 181, 198, .12) 0, transparent 30rem), var(--canvas);
-      transition: background .2s ease, color .2s ease;
-    }
+    body { margin: 0; min-width: 320px; color: var(--ink); background: var(--canvas); font-size: 15px; line-height: 1.5; }
     a { color: inherit; }
     button, input { font: inherit; }
     button { cursor: pointer; }
-    .shell { width: min(1120px, calc(100% - 36px)); margin: 0 auto; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 22px 0; }
+    button, a, input { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 42%, transparent); outline-offset: 2px; }
+    .skip-link { position: fixed; top: 10px; left: 10px; z-index: 20; transform: translateY(-160%); padding: 9px 12px; border-radius: 8px; color: #fff; background: var(--accent); }
+    .skip-link:focus { transform: translateY(0); }
+    .shell { width: min(1040px, calc(100% - 40px)); margin: 0 auto; }
+    .site-header { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid color-mix(in srgb, var(--line) 82%, transparent); background: color-mix(in srgb, var(--canvas) 88%, transparent); backdrop-filter: blur(16px); }
+    .topbar { display: flex; min-height: 64px; align-items: center; justify-content: space-between; gap: 18px; }
     .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
-    .brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; color: #fff; background: var(--ink); font-size: 13px; font-weight: 900; }
-    .brand-name { font-size: 14px; font-weight: 850; letter-spacing: -.02em; }
-    .brand-subtitle { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
-    nav { display: flex; align-items: center; gap: 7px; }
-    nav a, .icon-button { padding: 8px 10px; border: 1px solid transparent; border-radius: 9px; color: var(--muted); background: transparent; font-size: 12px; font-weight: 800; text-decoration: none; }
-    nav a:hover, .icon-button:hover { color: var(--ink); background: var(--panel); border-color: var(--line); }
-    .icon-button { min-width: 38px; }
-    .hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(320px, .9fr); gap: 26px; align-items: center; padding: 72px 0 42px; }
-    .eyebrow, .section-label { color: var(--accent-dark); font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-    .eyebrow { display: inline-flex; align-items: center; gap: 8px; }
-    .eyebrow::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #35b786; box-shadow: 0 0 0 4px rgba(53, 183, 134, .16); }
-    h1 { max-width: 650px; margin: 16px 0 13px; font-size: clamp(44px, 7vw, 76px); line-height: .98; letter-spacing: -.075em; }
-    .hero-copy { max-width: 570px; margin: 0; color: var(--muted); font-size: 17px; line-height: 1.6; }
-    .hero-actions, .dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
-    .button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 14px; border: 1px solid transparent; border-radius: 10px; font-size: 12px; font-weight: 850; text-decoration: none; }
-    .button-primary { color: #fff; background: var(--accent); }
-    .button-secondary { color: var(--ink); border-color: var(--line); background: var(--panel); }
-    .agent-card { padding: 22px; border: 1px solid #594b65; border-radius: 18px; color: #f2ebf5; background: #32283a; box-shadow: 0 22px 55px rgba(65, 42, 76, .18); }
-    .agent-card h2 { margin: 11px 0 8px; font-size: 24px; letter-spacing: -.05em; }
-    .agent-card p { margin: 0; color: #c8b9ce; font-size: 13px; line-height: 1.55; }
-    .agent-endpoint { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 17px; padding: 10px 11px; border: 1px solid rgba(220, 200, 230, .2); border-radius: 10px; background: rgba(19, 12, 24, .35); }
-    .agent-endpoint code { overflow: hidden; color: #eadff0; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-    .copy-button { flex: 0 0 auto; padding: 6px 8px; border: 1px solid rgba(220, 200, 230, .28); border-radius: 7px; color: #f0e8f3; background: transparent; font-size: 10px; font-weight: 850; }
-    .copy-button:hover { background: rgba(255, 255, 255, .1); }
-    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 17px; }
-    .section-heading h2 { margin: 6px 0 0; font-size: 29px; letter-spacing: -.06em; }
-    .controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; margin-bottom: 12px; }
-    .search-wrap { position: relative; }
-    .search-wrap::before { content: "⌕"; position: absolute; top: 10px; left: 13px; color: #8794a9; font-size: 21px; line-height: 1; }
-    .search { width: 100%; padding: 12px 13px 12px 39px; border: 1px solid var(--line); border-radius: 10px; outline: none; color: var(--ink); background: var(--panel); }
-    .search:focus { border-color: #b9a7c5; box-shadow: 0 0 0 4px var(--accent-soft); }
+    .brand-mark { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 9px; color: #fff; background: var(--accent); font-size: 13px; font-weight: 850; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16); }
+    .brand-name { font-size: 14px; font-weight: 760; letter-spacing: -.02em; }
+    .brand-subtitle { margin-left: 5px; color: var(--faint); font-size: 11px; font-weight: 600; }
+    nav { display: flex; align-items: center; gap: 4px; }
+    nav a, .icon-button { display: inline-flex; min-height: 36px; align-items: center; padding: 7px 10px; border: 1px solid transparent; border-radius: 8px; color: var(--muted); background: transparent; font-size: 12px; font-weight: 680; text-decoration: none; }
+    nav a:hover, .icon-button:hover { border-color: var(--line); color: var(--ink); background: var(--surface); }
+    .icon-button { min-width: 38px; justify-content: center; }
+    .hero { padding: 76px 0 50px; text-align: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px; color: var(--accent); font-size: 12px; font-weight: 760; letter-spacing: .04em; }
+    .eyebrow::before { width: 7px; height: 7px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); content: ""; }
+    h1 { max-width: 760px; margin: 0 auto; font-size: clamp(40px, 6vw, 64px); line-height: 1.04; letter-spacing: -.055em; }
+    .hero-copy { max-width: 620px; margin: 18px auto 0; color: var(--muted); font-size: 17px; line-height: 1.7; }
+    .hero-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; margin-top: 25px; color: var(--faint); font-size: 12px; }
+    .hero-meta span { display: inline-flex; align-items: center; gap: 6px; }
+    .hero-meta span::before { width: 4px; height: 4px; border-radius: 50%; background: var(--line-strong); content: ""; }
+    .hero-meta strong { color: var(--ink); font-weight: 750; }
+    .quick-start { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; margin: 0 0 34px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
+    .quick-start-label { color: var(--muted); font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .command { overflow: hidden; color: var(--ink); font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
+    .copy-button, .small-button { display: inline-flex; min-height: 34px; align-items: center; justify-content: center; padding: 7px 10px; border: 1px solid var(--line-strong); border-radius: 8px; color: var(--ink); background: var(--surface); font-size: 11px; font-weight: 720; }
+    .copy-button:hover, .small-button:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .catalog { scroll-margin-top: 84px; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+    .section-heading h2 { margin: 0; font-size: 28px; letter-spacing: -.04em; }
+    .section-heading p { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+    .text-link { color: var(--muted); font-size: 12px; font-weight: 680; text-decoration: none; }
+    .text-link:hover { color: var(--accent); }
+    .search-panel { margin-bottom: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
+    .search-wrap { position: relative; display: block; }
+    .search-icon { position: absolute; top: 50%; left: 14px; width: 17px; height: 17px; transform: translateY(-50%); color: var(--faint); pointer-events: none; }
+    .search { width: 100%; min-height: 46px; padding: 11px 44px 11px 42px; border: 1px solid var(--line); border-radius: 10px; outline: none; color: var(--ink); background: var(--surface-subtle); }
+    .search::placeholder { color: var(--faint); }
+    .search:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .clear-search { position: absolute; top: 50%; right: 8px; width: 32px; height: 32px; transform: translateY(-50%); border: 0; border-radius: 7px; color: var(--muted); background: transparent; }
+    .clear-search:hover { color: var(--ink); background: var(--surface-strong); }
+    .filter-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+    .filter-label { flex: 0 0 auto; padding-left: 2px; color: var(--faint); font-size: 11px; font-weight: 680; }
     .filter-bar { display: flex; flex-wrap: wrap; gap: 6px; }
-    .filter { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: var(--panel); font-size: 11px; font-weight: 850; }
-    .filter.active { border-color: #baa4c2; color: var(--accent-dark); background: var(--accent-soft); }
-    .results-line { display: flex; justify-content: space-between; gap: 14px; margin: 11px 0; color: var(--muted); font-size: 11px; font-weight: 750; }
-    .skill-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-    .skill-card { display: flex; min-height: 242px; flex-direction: column; padding: 17px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); box-shadow: 0 10px 25px rgba(28, 49, 88, .04); }
-    .card-top { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
-    .skill-card h3 { margin: 0; font-size: 19px; letter-spacing: -.045em; }
-    .version { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 800; }
-    .trust { padding: 4px 7px; border-radius: 999px; color: var(--warning); background: var(--warning-soft); font-size: 9px; font-weight: 900; white-space: nowrap; }
+    .filter { min-height: 32px; padding: 6px 10px; border: 1px solid transparent; border-radius: 999px; color: var(--muted); background: var(--surface-subtle); font-size: 11px; font-weight: 680; }
+    .filter:hover { color: var(--ink); background: var(--surface-strong); }
+    .filter.active { border-color: color-mix(in srgb, var(--accent) 35%, transparent); color: var(--accent); background: var(--accent-soft); }
+    .filter-count { margin-left: 4px; opacity: .72; font-size: 10px; }
+    .results-line { display: flex; justify-content: space-between; gap: 14px; margin: 16px 2px 10px; color: var(--faint); font-size: 11px; }
+    .results-line strong { color: var(--muted); font-weight: 700; }
+    .skill-list { display: grid; gap: 10px; }
+    .skill-card { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 14px; align-items: start; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 1px 2px rgba(16, 24, 40, .025); transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
+    .skill-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow); transform: translateY(-1px); }
+    .skill-icon { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 11px; color: var(--accent); background: var(--accent-soft); font-size: 16px; font-weight: 820; text-transform: uppercase; }
+    .card-title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+    .skill-card h3 { margin: 0; font-size: 17px; line-height: 1.3; letter-spacing: -.025em; }
+    .version, .trust { display: inline-flex; align-items: center; border-radius: 999px; font-size: 9px; font-weight: 760; white-space: nowrap; }
+    .version { padding: 3px 6px; color: var(--muted); background: var(--surface-subtle); }
+    .trust { gap: 4px; padding: 3px 7px; color: var(--warning); background: var(--warning-soft); }
+    .trust::before { width: 5px; height: 5px; border-radius: 50%; background: currentColor; content: ""; }
     .trust.verified { color: var(--success); background: var(--success-soft); }
-    .description { min-height: 43px; margin: 11px 0 13px; color: var(--muted); font-size: 13px; line-height: 1.5; }
-    .tag-row, .compat-row { display: flex; flex-wrap: wrap; gap: 5px; }
-    .tag, .compat { padding: 4px 7px; border-radius: 6px; font-size: 9px; font-weight: 850; }
-    .tag { color: var(--muted); background: rgba(125, 112, 137, .14); }
-    .compat { color: var(--accent-dark); background: var(--accent-soft); }
-    .card-meta { margin-top: 14px; color: var(--muted); font-size: 10px; }
-    .meta-label { margin-right: 7px; color: var(--muted); font-weight: 850; }
-    .meta-value { color: var(--ink); font-weight: 850; }
-    .card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 16px; }
-    .install-preview { overflow: hidden; max-width: 70%; padding: 8px 9px; border-radius: 7px; color: var(--muted); background: rgba(125, 112, 137, .12); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
-    .details-button { padding: 8px 10px; border: 0; border-radius: 8px; color: #fff; background: var(--ink); font-size: 10px; font-weight: 900; }
-    .empty { padding: 36px 18px; border: 1px dashed var(--line); border-radius: 13px; color: var(--muted); text-align: center; }
-    footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin: 60px 0 24px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
-    footer a { color: var(--ink); font-weight: 850; text-decoration: none; }
-    dialog { width: min(680px, calc(100% - 26px)); max-height: min(740px, calc(100vh - 26px)); padding: 0; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); background: var(--canvas); box-shadow: 0 30px 90px rgba(15, 31, 64, .25); }
-    dialog::backdrop { background: rgba(12, 23, 44, .45); backdrop-filter: blur(4px); }
-    .dialog-inner { padding: 21px; }
-    .dialog-header { display: flex; justify-content: space-between; gap: 16px; }
-    .dialog-header h2 { margin: 5px 0 0; font-size: 26px; letter-spacing: -.06em; }
-    .close { width: 30px; height: 30px; border: 0; border-radius: 8px; color: var(--muted); background: var(--panel); font-size: 17px; }
-    .dialog-description { margin: 10px 0 16px; color: var(--muted); font-size: 13px; line-height: 1.55; }
-    .dialog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 17px 0; }
-    .dialog-panel { padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
-    .dialog-panel h3 { margin: 0 0 8px; color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
-    .dialog-panel p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
-    .skill-preview { max-height: 230px; overflow: auto; margin: 8px 0 0; padding: 12px; border-radius: 9px; color: #eadff0; background: var(--code); font: 11px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }
+    .description { max-width: 720px; margin: 7px 0 10px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .tag-row, .compat-row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+    .tag { padding: 3px 7px; border-radius: 6px; color: var(--muted); background: var(--surface-subtle); font-size: 9px; font-weight: 680; }
+    .card-meta { display: flex; flex-wrap: wrap; gap: 7px 15px; margin-top: 11px; color: var(--faint); font-size: 10px; }
+    .card-meta span { display: inline-flex; align-items: center; gap: 5px; }
+    .card-meta strong { color: var(--muted); font-weight: 680; }
+    .card-actions { display: grid; min-width: 126px; gap: 7px; }
+    .primary-button, .secondary-button { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: 730; white-space: nowrap; }
+    .primary-button { border: 1px solid var(--accent); color: #fff; background: var(--accent); }
+    html[data-theme="dark"] .primary-button { color: #0c111b; }
+    .primary-button:hover { border-color: var(--accent-hover); background: var(--accent-hover); }
+    .secondary-button { border: 1px solid var(--line-strong); color: var(--ink); background: var(--surface); }
+    .secondary-button:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .empty { padding: 54px 20px; border: 1px dashed var(--line-strong); border-radius: 14px; color: var(--muted); background: var(--surface); text-align: center; }
+    .agent-section { scroll-margin-top: 84px; display: grid; grid-template-columns: minmax(220px, .7fr) minmax(0, 1.3fr); gap: 32px; margin-top: 76px; padding: 30px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+    .agent-section h2 { margin: 0; font-size: 23px; letter-spacing: -.035em; }
+    .agent-section p { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
+    .endpoint-list { display: grid; gap: 8px; }
+    .endpoint { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 10px 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-subtle); }
+    .endpoint code { overflow: hidden; color: var(--ink); font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: nowrap; }
+    footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin: 54px 0 24px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--faint); font-size: 10px; }
+    footer a { color: var(--muted); font-weight: 680; text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+    dialog { width: min(760px, calc(100% - 28px)); max-height: min(820px, calc(100vh - 28px)); padding: 0; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); background: var(--canvas); box-shadow: 0 28px 90px rgba(15, 23, 42, .28); }
+    dialog::backdrop { background: rgba(5, 10, 20, .55); backdrop-filter: blur(3px); }
+    .dialog-inner { padding: 24px; }
+    .dialog-header { display: flex; justify-content: space-between; gap: 20px; }
+    .dialog-kicker { color: var(--accent); font-size: 10px; font-weight: 760; letter-spacing: .08em; text-transform: uppercase; }
+    .dialog-header h2 { margin: 4px 0 0; font-size: 25px; line-height: 1.2; letter-spacing: -.035em; }
+    .close { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); background: var(--surface); font-size: 18px; }
+    .close:hover { color: var(--ink); background: var(--surface-strong); }
+    .dialog-description { margin: 11px 0 16px; color: var(--muted); font-size: 13px; line-height: 1.65; }
+    .install-box { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 11px 11px 13px; border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line)); border-radius: 10px; background: var(--accent-soft); }
+    .install-box code { overflow: hidden; color: var(--ink); font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: nowrap; }
+    .dialog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin: 18px 0; }
+    .dialog-panel { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+    .dialog-panel h3 { margin: 0 0 7px; color: var(--faint); font-size: 9px; font-weight: 760; letter-spacing: .08em; text-transform: uppercase; }
+    .dialog-panel p { overflow-wrap: anywhere; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .compat { padding: 4px 7px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: var(--surface-subtle); font-size: 9px; font-weight: 680; }
+    .source-details { margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+    .source-details summary { padding: 11px 13px; color: var(--muted); font-size: 11px; font-weight: 720; cursor: pointer; }
+    .source-details[open] summary { border-bottom: 1px solid var(--line); }
+    .skill-preview { max-height: 270px; overflow: auto; margin: 0; padding: 14px; color: #dbe6f6; background: var(--code); font: 11px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }
+    .dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .dialog-actions a { text-decoration: none; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-    @media (max-width: 780px) { .hero { grid-template-columns: 1fr; padding-top: 42px; } .skill-grid { grid-template-columns: 1fr; } .controls { grid-template-columns: 1fr; } }
-    @media (max-width: 540px) { .shell { width: min(100% - 26px, 1120px); } nav a[href="#catalog"], nav a[href="#agent"] { display: none; } h1 { font-size: 49px; } .dialog-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) {
+      .hero { padding: 58px 0 38px; }
+      .quick-start { grid-template-columns: 1fr auto; }
+      .quick-start-label { grid-column: 1 / -1; }
+      .skill-card { grid-template-columns: 40px minmax(0, 1fr); }
+      .skill-icon { width: 40px; height: 40px; }
+      .card-actions { grid-column: 2; display: flex; min-width: 0; }
+      .card-actions button { flex: 1; }
+      .agent-section { grid-template-columns: 1fr; gap: 20px; }
+      .dialog-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 520px) {
+      .shell { width: min(100% - 24px, 1040px); }
+      .site-header .brand-subtitle, nav a[href="#agent"], nav a[href="/registry.json"] { display: none; }
+      nav a, .icon-button { padding: 7px 8px; }
+      .hero { padding-top: 46px; text-align: left; }
+      .hero h1 { font-size: 41px; }
+      .hero-copy { font-size: 15px; }
+      .hero-meta { justify-content: flex-start; }
+      .quick-start { grid-template-columns: minmax(0, 1fr) auto; padding: 12px; }
+      .filter-row { align-items: flex-start; flex-direction: column; gap: 7px; }
+      .section-heading { align-items: start; }
+      .skill-card { grid-template-columns: 1fr; padding: 15px; }
+      .skill-icon { display: none; }
+      .card-actions { grid-column: 1; }
+      .agent-section { margin-top: 54px; padding: 20px; }
+      .dialog-inner { padding: 18px; }
+      .dialog-grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
+  <a class="skip-link" href="#catalog" data-i18n="skip">Skip to skills</a>
+  <header class="site-header">
+    <div class="shell topbar">
       <a class="brand" href="/" aria-label="Shawnup Skill Index">
         <span class="brand-mark">S</span>
-        <span class="brand-name">Shawnup Skill<span class="brand-subtitle">Index</span></span>
+        <span class="brand-name">Shawnup Skill <span class="brand-subtitle">Index</span></span>
       </a>
       <nav aria-label="Primary navigation">
-        <a href="#catalog" data-i18n="browse">Browse</a>
-        <a href="#agent" data-i18n="forAgents">Agent</a>
-        <a href="/registry.json" data-i18n="json">JSON</a>
+        <a href="#catalog" data-i18n="browse">Skills</a>
+        <a href="#agent" data-i18n="forAgents">For agents</a>
+        <a href="/registry.json">JSON</a>
         <button class="icon-button" id="language-toggle" type="button" aria-label="Switch language">EN</button>
         <button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle theme">☾</button>
       </nav>
-    </header>
+    </div>
+  </header>
 
-    <main>
-      <section class="hero" aria-labelledby="hero-title">
-        <div>
-          <span class="eyebrow" data-i18n="eyebrow">Shawnup Skill Index</span>
-          <h1 id="hero-title" data-i18n="heroTitle">A sharper way to find your next skill.</h1>
-          <p class="hero-copy" data-i18n="heroCopy">Reusable workflows for Codex, Claude Code, and Gemini CLI.</p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="#catalog" data-i18n="browseSkills">Browse skills</a>
-            <a class="button button-secondary" href="/llms.txt" data-i18n="agentGuide">For agents</a>
-          </div>
-        </div>
-        <aside class="agent-card" id="agent" aria-labelledby="agent-title">
-          <span class="eyebrow" data-i18n="forAgents">For agents</span>
-          <h2 id="agent-title" data-i18n="agentTitle">Machine-readable first.</h2>
-          <p data-i18n="agentCopy">Use JSON and manifests when you need a skill.</p>
-          <div class="agent-endpoint"><code>/.well-known/agent-skill-registry.json</code><button class="copy-button" data-copy="/.well-known/agent-skill-registry.json" data-i18n="copy">Copy</button></div>
-          <div class="agent-endpoint"><code>/registry.json</code><button class="copy-button" data-copy="/registry.json" data-i18n="copy">Copy</button></div>
-        </aside>
-      </section>
+  <main class="shell">
+    <section class="hero" aria-labelledby="hero-title">
+      <span class="eyebrow" data-i18n="eyebrow">Reusable agent workflows</span>
+      <h1 id="hero-title" data-i18n="heroTitle">Turn repeatable work into a skill.</h1>
+      <p class="hero-copy" data-i18n="heroCopy">Find a workflow, review what it can access, and install it into your agent with one command.</p>
+      <div class="hero-meta" aria-label="Registry summary">
+        <span><strong id="hero-count">—</strong> <span data-i18n="skillCountLabel">skills</span></span>
+        <span data-i18n="agentSupport">Codex · Claude Code · Gemini CLI</span>
+        <span data-i18n="openFormat">Open, machine-readable format</span>
+      </div>
+    </section>
 
-      <section id="catalog" aria-labelledby="catalog-title">
-        <div class="section-heading"><div><span class="section-label" data-i18n="catalog">Skills</span><h2 id="catalog-title" data-i18n="skillsTitle">Skills</h2></div></div>
-        <div class="controls">
-          <label class="search-wrap"><span class="sr-only" data-i18n="searchLabel">Search skill</span><input class="search" id="search" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search skill…" autocomplete="off"></label>
+    <section class="quick-start" aria-labelledby="quick-start-title">
+      <span class="quick-start-label" id="quick-start-title" data-i18n="firstUse">First time? Install the Skill CLI</span>
+      <code class="command">npm install -g github:Shawn-csy/agent-skill-registry</code>
+      <button class="copy-button" type="button" data-copy="npm install -g github:Shawn-csy/agent-skill-registry" data-i18n="copy">Copy</button>
+    </section>
+
+    <section class="catalog" id="catalog" aria-labelledby="catalog-title">
+      <div class="section-heading">
+        <div><h2 id="catalog-title" data-i18n="skillsTitle">Explore skills</h2><p data-i18n="skillsCopy">Search by task, technology, or supported agent.</p></div>
+        <a class="text-link" href="/registry.json" data-i18n="viewJson">View JSON →</a>
+      </div>
+
+      <div class="search-panel">
+        <label class="search-wrap">
+          <span class="sr-only" data-i18n="searchLabel">Search skills</span>
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="2"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input class="search" id="search" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search skills, tags, or descriptions…" autocomplete="off">
+          <button class="clear-search" id="clear-search" type="button" aria-label="Clear search" hidden>×</button>
+        </label>
+        <div class="filter-row">
+          <span class="filter-label" data-i18n="filterLabel">Works with</span>
           <div class="filter-bar" id="compatibility-filters" data-i18n-aria="filterByAgent" aria-label="Filter by agent"></div>
         </div>
-        <div class="results-line"><span id="results-count">Loading…</span><span data-i18n="selectToInspect">Select a skill to inspect</span></div>
-        <div class="skill-grid" id="skills" aria-live="polite"></div>
-        <div class="empty" id="empty" hidden data-i18n="noMatch">No skills found.</div>
-      </section>
-    </main>
+      </div>
 
-    <footer><span>Shawnup Skill Index</span><span><a href="/registry.json">registry.json</a> · <a href="/.well-known/agent-skill-registry.json" data-i18n="discovery">discovery</a> · <a href="https://github.com/Shawn-csy/agent-skill-registry">GitHub</a></span></footer>
-  </div>
+      <div class="results-line"><strong id="results-count">Loading…</strong><span id="generated-at"></span></div>
+      <div class="skill-list" id="skills" aria-live="polite"></div>
+      <div class="empty" id="empty" hidden><strong data-i18n="noMatch">No matching skill.</strong><br><span data-i18n="noMatchHint">Try a broader keyword or clear the agent filter.</span></div>
+    </section>
+
+    <section class="agent-section" id="agent" aria-labelledby="agent-title">
+      <div>
+        <h2 id="agent-title" data-i18n="agentTitle">Machine-readable by default</h2>
+        <p data-i18n="agentCopy">Agents can discover the catalog, inspect permissions, and load only the skill they need.</p>
+      </div>
+      <div class="endpoint-list">
+        <div class="endpoint"><code>/.well-known/agent-skill-registry.json</code><button class="copy-button" type="button" data-copy="/.well-known/agent-skill-registry.json" data-i18n="copy">Copy</button></div>
+        <div class="endpoint"><code>/registry.json</code><button class="copy-button" type="button" data-copy="/registry.json" data-i18n="copy">Copy</button></div>
+        <div class="endpoint"><code>/llms.txt</code><button class="copy-button" type="button" data-copy="/llms.txt" data-i18n="copy">Copy</button></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell"><span>Shawnup Skill Index</span><span><a href="/registry.json">registry.json</a> · <a href="/.well-known/agent-skill-registry.json" data-i18n="discovery">discovery</a> · <a href="https://github.com/Shawn-csy/agent-skill-registry">GitHub</a></span></footer>
 
   <dialog id="skill-dialog" aria-labelledby="dialog-title">
     <div class="dialog-inner">
-      <div class="dialog-header"><div><span class="section-label" data-i18n="details">Details</span><h2 id="dialog-title">Skill</h2></div><button class="close" id="close-dialog" data-i18n-aria="close" aria-label="Close">×</button></div>
+      <div class="dialog-header"><div><span class="dialog-kicker" data-i18n="details">Skill details</span><h2 id="dialog-title">Skill</h2></div><button class="close" id="close-dialog" type="button" data-i18n-aria="close" aria-label="Close">×</button></div>
       <p class="dialog-description" id="dialog-description"></p>
-      <div class="tag-row" id="dialog-tags"></div>
+      <div class="install-box"><code id="dialog-install-command"></code><button class="copy-button" id="dialog-copy-install" type="button" data-i18n="copyCommand">Copy command</button></div>
       <div class="dialog-grid">
         <div class="dialog-panel"><h3 data-i18n="worksWith">Works with</h3><div class="compat-row" id="dialog-compatibility"></div></div>
         <div class="dialog-panel"><h3 data-i18n="access">Access</h3><p id="dialog-permissions"></p></div>
         <div class="dialog-panel"><h3 data-i18n="requires">Requires</h3><p id="dialog-requires"></p></div>
-        <div class="dialog-panel"><h3 data-i18n="files">Files</h3><p id="dialog-files"></p></div>
       </div>
-      <div class="dialog-panel"><h3 data-i18n="preview">SKILL.md</h3><pre class="skill-preview" id="dialog-preview">Loading…</pre></div>
-      <div class="dialog-actions"><button class="button button-primary" id="dialog-copy-install" data-i18n="copyInstall">Copy install command</button><a class="button button-secondary" id="dialog-open-manifest" href="/registry.json" data-i18n="manifest">Manifest</a><a class="button button-secondary" id="dialog-open-skill" href="/registry.json" data-i18n="skillFile">SKILL.md</a></div>
+      <div class="tag-row" id="dialog-tags"></div>
+      <details class="source-details"><summary data-i18n="preview">Preview SKILL.md</summary><pre class="skill-preview" id="dialog-preview">Loading…</pre></details>
+      <div class="dialog-actions"><a class="secondary-button" id="dialog-open-manifest" href="/registry.json" data-i18n="manifest">Manifest</a><a class="secondary-button" id="dialog-open-skill" href="/registry.json" data-i18n="skillFile">Open SKILL.md</a><span class="sr-only" id="dialog-files"></span></div>
     </div>
   </dialog>
 
   <script>
     const translations = {
-      en: { eyebrow: 'Shawnup Skill Index', heroTitle: 'A sharper way to find your next skill.', heroCopy: 'Reusable workflows for Codex, Claude Code, and Gemini CLI.', browse: 'Browse', forAgents: 'For agents', json: 'JSON', browseSkills: 'Browse skills', agentGuide: 'For agents', agentTitle: 'Machine-readable first.', agentCopy: 'Use JSON and manifests when you need a skill.', copy: 'Copy', catalog: 'Skills', skillsTitle: 'Skills', searchLabel: 'Search skill', searchPlaceholder: 'Search skill…', selectToInspect: 'Select a skill to inspect', noMatch: 'No skill found.', details: 'Details', worksWith: 'Works with', access: 'Access', requires: 'Requires', files: 'Files', preview: 'SKILL.md', copyInstall: 'Copy install command', manifest: 'Manifest', skillFile: 'SKILL.md', discovery: 'discovery', close: 'Close', filterByAgent: 'Filter by agent', all: 'All', review: 'Review', verified: 'Verified', view: 'View', copied: 'Copied', readFiles: 'read files', writeFiles: 'write files', shell: 'shell', network: 'network', noAccess: 'No elevated access', noRequirements: 'None', results: '{shown} results' },
-      zh: { eyebrow: 'Shawnup Skill Index', heroTitle: '找到好用的 skill。', heroCopy: '給 Codex、Claude Code、Gemini CLI 的可重用工作流程。', browse: 'Browse', forAgents: '給 Agent', json: 'JSON', browseSkills: '瀏覽 skill', agentGuide: '給 Agent', agentTitle: 'Agent 直接讀這裡。', agentCopy: '需要 skill 時，直接讀 JSON 和 manifest。', copy: '複製', catalog: 'Skills', skillsTitle: 'Skills', searchLabel: '搜尋 skill', searchPlaceholder: '搜尋 skill、標籤或描述…', selectToInspect: '選取 skill 查看詳情', noMatch: '找不到符合的 skill。', details: '詳情', worksWith: '支援 Agent', access: '權限', requires: '需求', files: '檔案', preview: 'SKILL.md 預覽', copyInstall: '複製安裝命令', manifest: 'Manifest', skillFile: 'SKILL.md', discovery: '探索資訊', close: '關閉', filterByAgent: '依 Agent 篩選', all: '全部', review: '請先檢查', verified: '已驗證', view: '查看', copied: '已複製', readFiles: '讀檔', writeFiles: '寫檔', shell: 'Shell', network: '網路', noAccess: '未宣告額外權限', noRequirements: '無', results: '找到 {shown} 個' }
+      en: { skip: 'Skip to skills', eyebrow: 'Reusable agent workflows', heroTitle: 'Turn repeatable work into a skill.', heroCopy: 'Find a workflow, review what it can access, and install it into your agent with one command.', skillCountLabel: 'skills', agentSupport: 'Codex · Claude Code · Gemini CLI', openFormat: 'Open, machine-readable format', browse: 'Skills', forAgents: 'For agents', firstUse: 'First time? Install the Skill CLI', copy: 'Copy', copied: 'Copied', skillsTitle: 'Explore skills', skillsCopy: 'Search by task, technology, or supported agent.', viewJson: 'View JSON →', searchLabel: 'Search skills', searchPlaceholder: 'Search skills, tags, or descriptions…', filterLabel: 'Works with', filterByAgent: 'Filter by agent', all: 'All', noMatch: 'No matching skill.', noMatchHint: 'Try a broader keyword or clear the agent filter.', agentTitle: 'Machine-readable by default', agentCopy: 'Agents can discover the catalog, inspect permissions, and load only the skill they need.', discovery: 'discovery', details: 'Skill details', close: 'Close', copyCommand: 'Copy command', worksWith: 'Works with', access: 'Access', requires: 'Requires', preview: 'Preview SKILL.md', manifest: 'Manifest', skillFile: 'Open SKILL.md', review: 'Unverified', verified: 'Verified', install: 'Copy install', view: 'View details', readFiles: 'read files', writeFiles: 'write files', shell: 'shell', network: 'network', noAccess: 'No elevated access', noRequirements: 'None', results: '{shown} of {total} skills', updated: 'Updated {date}', themeLight: 'Use light theme', themeDark: 'Use dark theme', clearSearch: 'Clear search' },
+      zh: { skip: '跳到 skill 列表', eyebrow: '可重用的 Agent 工作流', heroTitle: '把做過的事，變成可重用的 Skill。', heroCopy: '找到工作流、先檢查它需要的權限，再用一行指令安裝到你的 Agent。', skillCountLabel: '個 skills', agentSupport: '支援 Codex · Claude Code · Gemini CLI', openFormat: '開放、機器可讀格式', browse: 'Skills', forAgents: '給 Agent', firstUse: '第一次使用？先安裝 Skill CLI', copy: '複製', copied: '已複製', skillsTitle: '探索 Skills', skillsCopy: '依任務、技術或支援的 Agent 搜尋。', viewJson: '查看 JSON →', searchLabel: '搜尋 skills', searchPlaceholder: '搜尋 skill、標籤或用途…', filterLabel: '支援 Agent', filterByAgent: '依 Agent 篩選', all: '全部', noMatch: '找不到符合的 skill。', noMatchHint: '試試更短的關鍵字，或清除 Agent 篩選。', agentTitle: '預設就是機器可讀', agentCopy: 'Agent 可以探索目錄、先檢查權限，只載入當下需要的 skill。', discovery: '探索資訊', details: 'Skill 詳情', close: '關閉', copyCommand: '複製指令', worksWith: '支援 Agent', access: '需要權限', requires: '執行需求', preview: '預覽 SKILL.md', manifest: 'Manifest', skillFile: '開啟 SKILL.md', review: '未驗證', verified: '已驗證', install: '複製安裝指令', view: '查看詳情', readFiles: '讀檔', writeFiles: '寫檔', shell: 'Shell', network: '網路', noAccess: '未宣告額外權限', noRequirements: '無', results: '顯示 {shown} / {total} 個 skills', updated: '更新於 {date}', themeLight: '切換亮色模式', themeDark: '切換暗色模式', clearSearch: '清除搜尋' }
     };
-    const agentLabels = { codex: 'Codex', 'claude-code': 'Claude Code', 'gemini-cli': 'Gemini CLI' };
-    const state = { skills: [], term: '', agent: 'all', locale: localStorage.getItem('registry-locale') || (navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en'), theme: localStorage.getItem('registry-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'), active: null };
+    const agentLabels = { codex: 'Codex', 'claude-code': 'Claude Code', 'gemini-cli': 'Gemini CLI', custom: 'Custom' };
+    const state = { skills: [], term: '', agent: 'all', locale: localStorage.getItem('registry-locale') || (navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en'), theme: localStorage.getItem('registry-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'), active: null, generatedAt: null };
     const search = document.querySelector('#search');
+    const clearSearch = document.querySelector('#clear-search');
     const skillsContainer = document.querySelector('#skills');
     const empty = document.querySelector('#empty');
     const resultsCount = document.querySelector('#results-count');
     const dialog = document.querySelector('#skill-dialog');
     const t = key => (translations[state.locale][key] || translations.en[key] || key);
-    const setTheme = () => { document.documentElement.dataset.theme = state.theme; document.querySelector('#theme-toggle').textContent = state.theme === 'dark' ? '☀' : '☾'; document.querySelector('#theme-toggle').setAttribute('aria-label', state.theme === 'dark' ? t('themeLight') : t('themeDark')); };
-    translations.en.themeLight = 'Use light theme'; translations.en.themeDark = 'Use dark theme'; translations.zh.themeLight = '切換亮色模式'; translations.zh.themeDark = '切換暗色模式';
-    const applyI18n = () => { document.documentElement.lang = state.locale === 'zh' ? 'zh-Hant' : 'en'; document.querySelectorAll('[data-i18n]').forEach(node => { node.textContent = t(node.dataset.i18n); }); document.querySelectorAll('[data-i18n-placeholder]').forEach(node => { node.placeholder = t(node.dataset.i18nPlaceholder); }); document.querySelectorAll('[data-i18n-aria]').forEach(node => { node.setAttribute('aria-label', t(node.dataset.i18nAria)); }); document.querySelector('#language-toggle').textContent = state.locale === 'zh' ? 'EN' : '中'; document.querySelector('#language-toggle').setAttribute('aria-label', state.locale === 'zh' ? 'Switch to English' : '切換繁體中文'); setTheme(); if (state.skills.length) { renderFilters(); render(); } if (dialog.open && state.active) fillDialog(state.active); };
-    const copy = async (value, button) => { try { await navigator.clipboard.writeText(value); if (button) { const original = button.textContent; button.textContent = t('copied'); setTimeout(() => { button.textContent = original; }, 1200); } } catch { window.prompt('Copy this value', value); } };
-    const installCommand = skill => 'skill install ' + skill.slug + ' --target codex';
-    const permissionSummary = skill => { const permissions = []; const p = skill.permissions || {}; if (p.filesystem && p.filesystem.read) permissions.push(t('readFiles')); if (p.filesystem && p.filesystem.write) permissions.push(t('writeFiles')); if (p.shell) permissions.push(t('shell')); if (p.network && p.network.length) permissions.push(t('network')); return permissions.length ? permissions.join(' · ') : t('noAccess'); };
-    const requiresSummary = skill => { const values = []; const r = skill.requires || {}; if (r.tools && r.tools.length) values.push('tools: ' + r.tools.join(', ')); if (r.skills && r.skills.length) values.push('skills: ' + r.skills.join(', ')); return values.length ? values.join(' · ') : t('noRequirements'); };
     const make = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
     const addPills = (parent, values, className, labels) => values.forEach(value => parent.appendChild(make('span', className, labels && labels[value] ? labels[value] : value)));
+    const installCommand = skill => 'skill install ' + skill.slug + ' --target codex';
+    const permissionSummary = skill => { const values = []; const p = skill.permissions || {}; if (p.filesystem && p.filesystem.read) values.push(t('readFiles')); if (p.filesystem && p.filesystem.write) values.push(t('writeFiles')); if (p.shell) values.push(t('shell')); if (p.network && p.network.length) values.push(t('network')); return values.length ? values.join(' · ') : t('noAccess'); };
+    const requiresSummary = skill => { const values = []; const r = skill.requires || {}; if (r.tools && r.tools.length) values.push(r.tools.join(', ')); if (r.skills && r.skills.length) values.push(r.skills.join(', ')); return values.length ? values.join(' · ') : t('noRequirements'); };
     const visibleSkills = () => state.skills.filter(skill => { const haystack = [skill.slug, skill.name, skill.description].concat(skill.tags || [], skill.compatibility || []).join(' ').toLowerCase(); return (!state.term || haystack.includes(state.term)) && (state.agent === 'all' || (skill.compatibility || []).includes(state.agent)); });
-    const renderFilters = () => { const filters = document.querySelector('#compatibility-filters'); filters.replaceChildren(); ['all'].concat([...new Set(state.skills.flatMap(skill => skill.compatibility || []))]).forEach(agent => { const button = make('button', 'filter' + (state.agent === agent ? ' active' : ''), agent === 'all' ? t('all') : (agentLabels[agent] || agent)); button.type = 'button'; button.addEventListener('click', () => { state.agent = agent; renderFilters(); render(); }); filters.appendChild(button); }); };
-    const render = () => { const visible = visibleSkills(); skillsContainer.replaceChildren(); resultsCount.textContent = t('results').replace('{shown}', visible.length).replace('{total}', state.skills.length); empty.hidden = visible.length > 0; visible.forEach(skill => { const card = make('article', 'skill-card'); const top = make('div', 'card-top'); const heading = make('div'); heading.appendChild(make('h3', '', skill.name)); heading.appendChild(make('span', 'version', 'v' + skill.version)); top.appendChild(heading); top.appendChild(make('span', 'trust' + (skill.verified ? ' verified' : ''), skill.verified ? t('verified') : t('review'))); card.appendChild(top); card.appendChild(make('p', 'description', skill.description)); const tags = make('div', 'tag-row'); addPills(tags, (skill.tags || []).slice(0, 4), 'tag'); card.appendChild(tags); const compat = make('div', 'compat-row'); addPills(compat, skill.compatibility || [], 'compat', agentLabels); card.appendChild(compat); const meta = make('div', 'card-meta'); meta.appendChild(make('span', 'meta-label', t('access'))); meta.appendChild(make('span', 'meta-value', permissionSummary(skill))); card.appendChild(meta); const bottom = make('div', 'card-bottom'); const command = make('code', 'install-preview', installCommand(skill)); const copyButton = make('button', 'copy-button', t('copy')); copyButton.type = 'button'; copyButton.addEventListener('click', () => copy(installCommand(skill), copyButton)); bottom.appendChild(command); bottom.appendChild(copyButton); const details = make('button', 'details-button', t('view')); details.type = 'button'; details.addEventListener('click', () => openSkill(skill.slug)); bottom.appendChild(details); card.appendChild(bottom); skillsContainer.appendChild(card); }); };
-    const fillDialog = async skill => { document.querySelector('#dialog-title').textContent = skill.name + ' v' + skill.version; document.querySelector('#dialog-description').textContent = skill.description; const tags = document.querySelector('#dialog-tags'); tags.replaceChildren(); addPills(tags, skill.tags || [], 'tag'); const compatibility = document.querySelector('#dialog-compatibility'); compatibility.replaceChildren(); addPills(compatibility, skill.compatibility || [], 'compat', agentLabels); document.querySelector('#dialog-permissions').textContent = permissionSummary(skill); document.querySelector('#dialog-requires').textContent = requiresSummary(skill); document.querySelector('#dialog-files').textContent = (skill.files || []).join(' · '); document.querySelector('#dialog-open-manifest').href = skill.manifest; document.querySelector('#dialog-open-skill').href = skill.skill; document.querySelector('#dialog-copy-install').onclick = () => copy(installCommand(skill), document.querySelector('#dialog-copy-install')); const preview = document.querySelector('#dialog-preview'); preview.textContent = 'Loading…'; try { const response = await fetch(skill.skill); preview.textContent = response.ok ? (await response.text()).slice(0, 5000) : 'Preview unavailable.'; } catch { preview.textContent = 'Preview unavailable.'; } };
+    const iconText = skill => (skill.name || skill.slug || 'S').replaceAll('-', ' ').split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('');
+    const formatDate = value => { if (!value) return ''; try { return new Intl.DateTimeFormat(state.locale === 'zh' ? 'zh-TW' : 'en', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(value)); } catch { return ''; } };
+    const copy = async (value, button) => { try { await navigator.clipboard.writeText(value); if (button) { const original = button.textContent; button.textContent = t('copied'); setTimeout(() => { button.textContent = original; }, 1200); } } catch { window.prompt('Copy this value', value); } };
+    const setTheme = () => { document.documentElement.dataset.theme = state.theme; const button = document.querySelector('#theme-toggle'); button.textContent = state.theme === 'dark' ? '☀' : '☾'; button.setAttribute('aria-label', state.theme === 'dark' ? t('themeLight') : t('themeDark')); };
+    const renderFilters = () => { const filters = document.querySelector('#compatibility-filters'); filters.replaceChildren(); const agents = ['all'].concat([...new Set(state.skills.flatMap(skill => skill.compatibility || []))]); agents.forEach(agent => { const count = agent === 'all' ? state.skills.length : state.skills.filter(skill => (skill.compatibility || []).includes(agent)).length; const button = make('button', 'filter' + (state.agent === agent ? ' active' : '')); button.type = 'button'; button.appendChild(document.createTextNode(agent === 'all' ? t('all') : (agentLabels[agent] || agent))); button.appendChild(make('span', 'filter-count', String(count))); button.setAttribute('aria-pressed', state.agent === agent ? 'true' : 'false'); button.addEventListener('click', () => { state.agent = agent; renderFilters(); render(); }); filters.appendChild(button); }); };
+    const render = () => { const visible = visibleSkills(); skillsContainer.replaceChildren(); resultsCount.textContent = t('results').replace('{shown}', visible.length).replace('{total}', state.skills.length); document.querySelector('#hero-count').textContent = String(state.skills.length); const date = formatDate(state.generatedAt); document.querySelector('#generated-at').textContent = date ? t('updated').replace('{date}', date) : ''; clearSearch.hidden = !state.term; empty.hidden = visible.length > 0; visible.forEach(skill => { const card = make('article', 'skill-card'); card.appendChild(make('div', 'skill-icon', iconText(skill))); const content = make('div', 'card-content'); const titleRow = make('div', 'card-title-row'); titleRow.appendChild(make('h3', '', skill.name)); titleRow.appendChild(make('span', 'version', 'v' + skill.version)); titleRow.appendChild(make('span', 'trust' + (skill.verified ? ' verified' : ''), skill.verified ? t('verified') : t('review'))); content.appendChild(titleRow); content.appendChild(make('p', 'description', skill.description)); const tags = make('div', 'tag-row'); addPills(tags, (skill.tags || []).slice(0, 5), 'tag'); content.appendChild(tags); const meta = make('div', 'card-meta'); const worksWith = make('span'); worksWith.appendChild(make('strong', '', t('worksWith') + ':')); worksWith.appendChild(document.createTextNode((skill.compatibility || []).map(agent => agentLabels[agent] || agent).join(' · '))); meta.appendChild(worksWith); const access = make('span'); access.appendChild(make('strong', '', t('access') + ':')); access.appendChild(document.createTextNode(permissionSummary(skill))); meta.appendChild(access); content.appendChild(meta); card.appendChild(content); const actions = make('div', 'card-actions'); const install = make('button', 'primary-button', t('install')); install.type = 'button'; install.addEventListener('click', () => copy(installCommand(skill), install)); const details = make('button', 'secondary-button', t('view')); details.type = 'button'; details.addEventListener('click', () => openSkill(skill.slug)); actions.appendChild(install); actions.appendChild(details); card.appendChild(actions); skillsContainer.appendChild(card); }); };
+    const fillDialog = async skill => { document.querySelector('#dialog-title').textContent = skill.name + ' v' + skill.version; document.querySelector('#dialog-description').textContent = skill.description; const command = installCommand(skill); document.querySelector('#dialog-install-command').textContent = command; document.querySelector('#dialog-copy-install').onclick = () => copy(command, document.querySelector('#dialog-copy-install')); const tags = document.querySelector('#dialog-tags'); tags.replaceChildren(); addPills(tags, skill.tags || [], 'tag'); const compatibility = document.querySelector('#dialog-compatibility'); compatibility.replaceChildren(); addPills(compatibility, skill.compatibility || [], 'compat', agentLabels); document.querySelector('#dialog-permissions').textContent = permissionSummary(skill); document.querySelector('#dialog-requires').textContent = requiresSummary(skill); document.querySelector('#dialog-files').textContent = (skill.files || []).join(' · '); document.querySelector('#dialog-open-manifest').href = skill.manifest; document.querySelector('#dialog-open-skill').href = skill.skill; const preview = document.querySelector('#dialog-preview'); preview.textContent = 'Loading…'; try { const response = await fetch(skill.skill); preview.textContent = response.ok ? (await response.text()).slice(0, 6000) : 'Preview unavailable.'; } catch { preview.textContent = 'Preview unavailable.'; } };
     const openSkill = async slug => { const skill = state.skills.find(candidate => candidate.slug === slug); if (!skill) return; state.active = skill; window.location.hash = 'skill=' + encodeURIComponent(slug); dialog.showModal(); await fillDialog(skill); };
+    const applyI18n = () => { document.documentElement.lang = state.locale === 'zh' ? 'zh-Hant' : 'en'; document.querySelectorAll('[data-i18n]').forEach(node => { node.textContent = t(node.dataset.i18n); }); document.querySelectorAll('[data-i18n-placeholder]').forEach(node => { node.placeholder = t(node.dataset.i18nPlaceholder); }); document.querySelectorAll('[data-i18n-aria]').forEach(node => { node.setAttribute('aria-label', t(node.dataset.i18nAria)); }); document.querySelector('#clear-search').setAttribute('aria-label', t('clearSearch')); document.querySelector('#language-toggle').textContent = state.locale === 'zh' ? 'EN' : '中'; document.querySelector('#language-toggle').setAttribute('aria-label', state.locale === 'zh' ? 'Switch to English' : '切換繁體中文'); setTheme(); if (state.skills.length) { renderFilters(); render(); } if (dialog.open && state.active) fillDialog(state.active); };
     document.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click', () => copy(button.dataset.copy, button)));
     document.querySelector('#language-toggle').addEventListener('click', () => { state.locale = state.locale === 'zh' ? 'en' : 'zh'; localStorage.setItem('registry-locale', state.locale); applyI18n(); });
     document.querySelector('#theme-toggle').addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; localStorage.setItem('registry-theme', state.theme); setTheme(); });
     document.querySelector('#close-dialog').addEventListener('click', () => dialog.close());
-    dialog.addEventListener('close', () => { state.active = null; if (window.location.hash.startsWith('#skill=')) history.replaceState(null, '', window.location.pathname + window.location.search); });
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+    dialog.addEventListener('close', () => { state.active = null; document.querySelector('.source-details').open = false; if (window.location.hash.startsWith('#skill=')) history.replaceState(null, '', window.location.pathname + window.location.search); });
     search.addEventListener('input', event => { state.term = event.target.value.trim().toLowerCase(); render(); });
+    clearSearch.addEventListener('click', () => { search.value = ''; state.term = ''; search.focus(); render(); });
     applyI18n();
-    fetch('./registry.json').then(response => response.json()).then(registry => { state.skills = registry.skills || []; renderFilters(); render(); const hash = window.location.hash.match(/^#skill=(.+)$/); if (hash) openSkill(decodeURIComponent(hash[1])); }).catch(() => { resultsCount.textContent = 'Catalog unavailable'; empty.hidden = false; });
+    fetch('./registry.json').then(response => response.json()).then(registry => { state.skills = registry.skills || []; state.generatedAt = registry.generatedAt || null; renderFilters(); render(); const hash = window.location.hash.match(/^#skill=(.+)$/); if (hash) openSkill(decodeURIComponent(hash[1])); }).catch(() => { resultsCount.textContent = 'Catalog unavailable'; empty.hidden = false; });
   </script>
 </body>
 </html>
